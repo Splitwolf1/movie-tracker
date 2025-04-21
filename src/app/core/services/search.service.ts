@@ -76,11 +76,7 @@ export class SearchService {
       backdrop_path: item.backdrop_path || undefined, // Optional, can be undefined
       genre_ids: [],
       popularity: item.popularity || 0,
-      vote_count: item.vote_count || 0,
-      adult: false,
-      original_language: '',
-      original_title: '',
-      video: false
+      vote_count: item.vote_count || 0
     };
   }
 
@@ -89,7 +85,7 @@ export class SearchService {
     return {
       id: item.id,
       name: item.name || 'Unknown Name',
-      profile_path: item.profile_path, // Already matches Person model type (string | null)
+      profile_path: item.profile_path === undefined ? null : item.profile_path, // Handle undefined case
       known_for_department: item.known_for_department || '',
       popularity: item.popularity || 0
     };
