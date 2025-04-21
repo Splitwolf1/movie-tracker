@@ -1,0 +1,63 @@
+.content-management {
+  .card {
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    
+    .card-header {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    }
+  }
+  
+  table {
+    th {
+      font-weight: 500;
+    }
+    
+    td {
+      vertical-align: middle;
+    }
+  }
+  
+  .modal {
+    background-color: rgba(0, 0, 0, 0.5);
+    
+    .modal-dialog {
+      max-width: 90%;
+      
+      @media (min-width: 992px) {
+        max-width: 800px;
+      }
+    }
+    
+    pre {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+  }
+  
+  .btn-group {
+    .dropdown-menu {
+      min-width: 8rem;
+    }
+  }
+  
+  .text-success {
+    color: #28a745 !important;
+  }
+  
+  .text-warning {
+    color: #ffc107 !important;
+  }
+  
+  .text-danger {
+    color: #dc3545 !important;
+  }
+  
+  .text-secondary {
+    color: #6c757d !important;
+  }
+  
+  .text-muted {
+    color: #868e96 !important;
+  }
+} 

@@ -1,0 +1,58 @@
+<div class="movie-reviews-container">
+  <header class="reviews-header">
+    <h2>Reviews</h2>
+    <div class="header-actions">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        *ngIf="isAuthenticated && !hasUserReviewed && !showAddReviewForm"
+        (click)="onAddReview()">
+        <mat-icon>rate_review</mat-icon>
+        Write a Review
+      </button>
+    </div>
+  </header>
+  
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+  </div>
+  
+  <div class="review-form-container" *ngIf="showAddReviewForm">
+    <h3>{{ reviewToEdit ? 'Edit Your Review' : 'Write a Review' }}</h3>
+    <app-review-form 
+      [movie]="movie" 
+      [initialReview]="reviewToEdit"
+      (submitReview)="onSubmitReview($event)"
+      (cancelReview)="onCancelForm()">
+    </app-review-form>
+  </div>
+  
+  <div class="reviews-content" *ngIf="!isLoading">
+    <app-review-list 
+      [reviews]="reviews"
+      [showMovieDetails]="false"
+      [canEdit]="isAuthenticated"
+      (editReview)="onEditReview($event)"
+      (deleteReview)="onDeleteReview($event)"
+      (likeReview)="onLikeReview($event)">
+    </app-review-list>
+    
+    <div class="no-reviews" *ngIf="reviews.length === 0 && !showAddReviewForm">
+      <mat-icon>comment</mat-icon>
+      <p>No reviews yet. Be the first to share your thoughts!</p>
+      <button 
+        mat-raised-button 
+        color="primary" 
+        *ngIf="isAuthenticated"
+        (click)="onAddReview()">
+        Write a Review
+      </button>
+      <button 
+        mat-raised-button 
+        color="primary" 
+        *ngIf="!isAuthenticated">
+        Sign In to Write a Review
+      </button>
+    </div>
+  </div>
+</div> 

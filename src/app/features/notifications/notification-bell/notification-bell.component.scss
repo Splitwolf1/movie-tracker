@@ -1,0 +1,15 @@
+:host {
+  display: block;
+}
+
+button {
+  position: relative;
+}
+
+::ng-deep .mat-badge-content {
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+} 

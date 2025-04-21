@@ -1,0 +1,46 @@
+<div class="activity-feed-container">
+  <h2 class="feed-title">Activity Feed</h2>
+  
+  <div class="feed-content">
+    <ng-container *ngIf="(activities$ | async)?.length; else noActivities">
+      <mat-card class="activity-list">
+        <mat-list>
+          <div *ngFor="let activity of activities$ | async" class="activity-item">
+            <mat-list-item class="activity-content" (click)="navigateToContent(activity)">
+              <div class="activity-avatar" mat-list-avatar>
+                <div class="avatar-placeholder" *ngIf="!activity.userAvatar">
+                  {{ activity.username.charAt(0).toUpperCase() }}
+                </div>
+                <img 
+                  *ngIf="activity.userAvatar" 
+                  [src]="activity.userAvatar" 
+                  [alt]="activity.username">
+              </div>
+              
+              <div mat-line class="activity-header">
+                <span class="username">{{ activity.username }}</span>
+                <span class="activity-message">{{ getActivityMessage(activity) }}</span>
+              </div>
+              
+              <div mat-line class="activity-time">
+                {{ getActivityTime(activity) }}
+              </div>
+              
+              <mat-icon class="activity-type-icon">{{ getActivityIcon(activity) }}</mat-icon>
+            </mat-list-item>
+            
+            <mat-divider></mat-divider>
+          </div>
+        </mat-list>
+      </mat-card>
+    </ng-container>
+    
+    <ng-template #noActivities>
+      <mat-card class="empty-feed">
+        <mat-icon class="empty-icon">notifications_off</mat-icon>
+        <p>No recent activity to display.</p>
+        <p>Activity from you and your friends will appear here.</p>
+      </mat-card>
+    </ng-template>
+  </div>
+</div> 

@@ -1,0 +1,107 @@
+<div class="list-detail-container" *ngIf="customList$ | async as list; else loading">
+  <div class="header">
+    <div class="back-button">
+      <button mat-icon-button [routerLink]="['/custom-lists']">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+    </div>
+    
+    <div class="list-meta">
+      <h1>{{ list.name }}</h1>
+      <div class="meta-row">
+        <span class="visibility-badge" [ngClass]="list.isPublic ? 'public' : 'private'">
+          {{ list.isPublic ? 'Public' : 'Private' }}
+        </span>
+        <span class="info">{{ list.items.length }} {{ list.items.length === 1 ? 'movie' : 'movies' }}</span>
+        <span class="info">Created {{ list.createdAt | date:'mediumDate' }}</span>
+        <span class="info">Updated {{ list.updatedAt | date:'mediumDate' }}</span>
+      </div>
+      <p class="description">{{ list.description }}</p>
+      
+      <div class="tags" *ngIf="list.tags && list.tags.length > 0">
+        <mat-chip-listbox>
+          <mat-chip *ngFor="let tag of list.tags">{{ tag }}</mat-chip>
+        </mat-chip-listbox>
+      </div>
+    </div>
+    
+    <div class="actions">
+      <button mat-icon-button [matMenuTriggerFor]="menu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="openEditDialog(list)">
+          <mat-icon>edit</mat-icon>
+          <span>Edit List</span>
+        </button>
+        <button mat-menu-item (click)="deleteList(list)">
+          <mat-icon>delete</mat-icon>
+          <span>Delete List</span>
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="empty-list" *ngIf="list.items.length === 0">
+      <mat-icon>movie</mat-icon>
+      <h2>This list is empty</h2>
+      <p>Add movies to your list to see them here.</p>
+    </div>
+
+    <div class="movie-grid" *ngIf="list.items.length > 0">
+      <mat-card *ngFor="let item of list.items" class="movie-card">
+        <mat-card-header>
+          <button mat-icon-button class="remove-button" (click)="removeMovie(list, item)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-card-header>
+        
+        <div class="movie-poster-container" [routerLink]="['/movie', item.movieId]">
+          <img *ngIf="item.movie?.poster_path" 
+               [src]="'https://image.tmdb.org/t/p/w300' + item.movie?.poster_path" 
+               [alt]="item.movie?.title" 
+               class="movie-poster">
+          <div *ngIf="!item.movie?.poster_path" class="no-poster">
+            <mat-icon>movie</mat-icon>
+          </div>
+        </div>
+        
+        <mat-card-content>
+          <h3 class="movie-title" [routerLink]="['/movie', item.movieId]">{{ item.movie?.title }}</h3>
+          <p class="movie-year" *ngIf="item.movie?.release_date">{{ item.movie?.release_date | date:'yyyy' }}</p>
+          
+          <div class="movie-details">
+            <span *ngIf="item.movie?.vote_average" class="rating">
+              <mat-icon>star</mat-icon>
+              {{ item.movie?.vote_average | number:'1.1-1' }}
+            </span>
+          </div>
+          
+          <div class="movie-genres" *ngIf="hasGenres(item)">
+            <span *ngFor="let genre of getGenres(item)" class="genre-chip">
+              {{ genre?.name }}
+            </span>
+          </div>
+          
+          <div class="notes-section">
+            <mat-form-field appearance="outline" class="notes-field">
+              <mat-label>Notes</mat-label>
+              <textarea matInput 
+                        [value]="item.notes || ''" 
+                        (blur)="updateNotes(list, item, $any($event.target).value)"
+                        placeholder="Add notes about this movie..."></textarea>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading list...</p>
+  </div>
+</ng-template> 

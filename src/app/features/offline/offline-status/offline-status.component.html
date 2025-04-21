@@ -1,0 +1,8 @@
+<div class="offline-status-container">
+  <mat-icon [ngClass]="{'online': (isOnline$ | async), 'offline': !(isOnline$ | async)}" 
+           [matBadge]="pendingSyncCount > 0 ? pendingSyncCount : null"
+           matBadgeColor="warn"
+           [matTooltip]="(isOnline$ | async) ? 'Online' : 'Offline'">
+    {{ (isOnline$ | async) ? 'wifi' : 'wifi_off' }}
+  </mat-icon>
+</div> 

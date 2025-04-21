@@ -1,0 +1,351 @@
+<div class="content-management">
+  <div class="container-fluid">
+    <div class="row mb-4">
+      <div class="col-12">
+        <h2 class="mb-3">Content Management</h2>
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <button *ngIf="!isViewingApprovals" class="btn btn-primary me-2" 
+                    (click)="showApprovals()">
+              View Approval Requests 
+              <span *ngIf="pendingApprovalCount > 0" class="badge bg-danger ms-1">
+                {{ pendingApprovalCount }}
+              </span>
+            </button>
+            
+            <button *ngIf="isViewingApprovals" class="btn btn-secondary" 
+                    (click)="hideApprovals()">
+              Back to Content List
+            </button>
+          </div>
+          
+          <div *ngIf="!isViewingApprovals">
+            <button class="btn btn-outline-secondary me-2" (click)="resetFilters()">
+              Reset Filters
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Filters -->
+    <div *ngIf="!isViewingApprovals" class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">Filters</h5>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="filterForm" class="row g-3">
+              <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select id="status" class="form-select" formControlName="status">
+                  <option value="">All Statuses</option>
+                  <option *ngFor="let option of contentStatusOptions" 
+                          [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
+              
+              <div class="col-md-3">
+                <label for="type" class="form-label">Content Type</label>
+                <select id="type" class="form-select" formControlName="type">
+                  <option value="">All Types</option>
+                  <option *ngFor="let option of contentTypeOptions" 
+                          [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
+              
+              <div class="col-md-6">
+                <label for="searchQuery" class="form-label">Search</label>
+                <input type="text" id="searchQuery" class="form-control" 
+                       placeholder="Search by title or description..." 
+                       formControlName="searchQuery">
+              </div>
+              
+              <div class="col-md-3">
+                <label for="dateFrom" class="form-label">From Date</label>
+                <input type="date" id="dateFrom" class="form-control" 
+                       formControlName="dateFrom">
+              </div>
+              
+              <div class="col-md-3">
+                <label for="dateTo" class="form-label">To Date</label>
+                <input type="date" id="dateTo" class="form-control" 
+                       formControlName="dateTo">
+              </div>
+              
+              <div class="col-md-3">
+                <label for="sortBy" class="form-label">Sort By</label>
+                <select id="sortBy" class="form-select" formControlName="sortBy">
+                  <option *ngFor="let option of sortOptions" 
+                          [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
+              
+              <div class="col-md-3">
+                <label for="sortDirection" class="form-label">Direction</label>
+                <select id="sortDirection" class="form-select" formControlName="sortDirection">
+                  <option value="desc">Newest First</option>
+                  <option value="asc">Oldest First</option>
+                </select>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content List -->
+    <div *ngIf="!isViewingApprovals" class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">Content Items</h5>
+          </div>
+          <div class="card-body p-0">
+            <div *ngIf="isLoading" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2">Loading content...</p>
+            </div>
+            
+            <div *ngIf="!isLoading && contentItems.length === 0" class="text-center py-5">
+              <p class="mb-0">No content items found.</p>
+            </div>
+            
+            <table *ngIf="!isLoading && contentItems.length > 0" class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Type</th>
+                  <th>Created</th>
+                  <th>Updated</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of contentItems">
+                  <td>{{ item.title }}</td>
+                  <td>{{ item.type }}</td>
+                  <td>{{ item.createdAt | date:'short' }}</td>
+                  <td>{{ item.updatedAt | date:'short' }}</td>
+                  <td>
+                    <span [ngClass]="getStatusColor(item.status)">
+                      {{ item.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="btn-group">
+                      <button class="btn btn-sm btn-outline-primary" 
+                              (click)="viewContent(item)">
+                        View
+                      </button>
+                      
+                      <div *ngIf="isAdmin || isModerator" class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" 
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                          Actions
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li *ngIf="item.status !== ContentStatus.PUBLISHED">
+                            <a class="dropdown-item" href="#" 
+                               (click)="$event.preventDefault(); changeContentStatus(item, ContentStatus.PUBLISHED)">
+                              Publish
+                            </a>
+                          </li>
+                          <li *ngIf="item.status !== ContentStatus.REJECTED">
+                            <a class="dropdown-item" href="#" 
+                               (click)="$event.preventDefault(); changeContentStatus(item, ContentStatus.REJECTED)">
+                              Reject
+                            </a>
+                          </li>
+                          <li *ngIf="item.status !== ContentStatus.ARCHIVED">
+                            <a class="dropdown-item" href="#" 
+                               (click)="$event.preventDefault(); changeContentStatus(item, ContentStatus.ARCHIVED)">
+                              Archive
+                            </a>
+                          </li>
+                          <li><hr class="dropdown-divider"></li>
+                          <li>
+                            <a class="dropdown-item text-danger" href="#" 
+                               (click)="$event.preventDefault(); deleteContent(item)">
+                              Delete
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approval Requests -->
+    <div *ngIf="isViewingApprovals" class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">Pending Approval Requests</h5>
+          </div>
+          <div class="card-body p-0">
+            <div *ngIf="approvalRequests.length === 0" class="text-center py-5">
+              <p class="mb-0">No pending approval requests.</p>
+            </div>
+            
+            <table *ngIf="approvalRequests.length > 0" class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Content ID</th>
+                  <th>Requested By</th>
+                  <th>Requested At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let request of approvalRequests">
+                  <td>{{ request.contentId }}</td>
+                  <td>{{ request.requestedBy }}</td>
+                  <td>{{ request.requestedAt | date:'short' }}</td>
+                  <td>
+                    <div class="btn-group">
+                      <button class="btn btn-sm btn-success me-2" 
+                              (click)="processApprovalRequest(request.id, true)">
+                        Approve
+                      </button>
+                      <button class="btn btn-sm btn-danger" 
+                              (click)="processApprovalRequest(request.id, false)">
+                        Reject
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Detail Modal -->
+  <div *ngIf="selectedContent" class="modal fade show" style="display: block;" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ selectedContent.title }}</h5>
+          <button type="button" class="btn-close" (click)="closeContentView()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <p><strong>Type:</strong> {{ selectedContent.type }}</p>
+              <p><strong>Created By:</strong> {{ selectedContent.createdBy }}</p>
+              <p><strong>Created At:</strong> {{ selectedContent.createdAt | date:'medium' }}</p>
+              <p *ngIf="selectedContent.updatedAt">
+                <strong>Last Updated:</strong> {{ selectedContent.updatedAt | date:'medium' }}
+              </p>
+            </div>
+            <div class="col-md-6">
+              <p>
+                <strong>Status:</strong> 
+                <span [ngClass]="getStatusColor(selectedContent.status)">
+                  {{ selectedContent.status }}
+                </span>
+              </p>
+              <p *ngIf="selectedContent.publishedAt">
+                <strong>Published At:</strong> {{ selectedContent.publishedAt | date:'medium' }}
+              </p>
+              <p *ngIf="selectedContent.rejectionReason">
+                <strong>Rejection Reason:</strong> {{ selectedContent.rejectionReason }}
+              </p>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-12">
+              <h6>Description</h6>
+              <p>{{ selectedContent.description || 'No description available.' }}</p>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-12">
+              <h6>Original Content</h6>
+              <pre class="bg-light p-3 rounded">{{ selectedContent.metadata | json }}</pre>
+            </div>
+          </div>
+          
+          <div *ngIf="selectedContent.metadata" class="row mt-3">
+            <div class="col-12">
+              <h6>Metadata</h6>
+              <div class="row">
+                <div class="col-md-3" *ngIf="selectedContent.metadata['views'] !== undefined">
+                  <div class="card text-center p-3">
+                    <h3>{{ selectedContent.metadata['views'] }}</h3>
+                    <p class="mb-0">Views</p>
+                  </div>
+                </div>
+                <div class="col-md-3" *ngIf="selectedContent.metadata['likes'] !== undefined">
+                  <div class="card text-center p-3">
+                    <h3>{{ selectedContent.metadata['likes'] }}</h3>
+                    <p class="mb-0">Likes</p>
+                  </div>
+                </div>
+                <div class="col-md-3" *ngIf="selectedContent.metadata['shares'] !== undefined">
+                  <div class="card text-center p-3">
+                    <h3>{{ selectedContent.metadata['shares'] }}</h3>
+                    <p class="mb-0">Shares</p>
+                  </div>
+                </div>
+                <div class="col-md-3" *ngIf="selectedContent.metadata['flags'] !== undefined">
+                  <div class="card text-center p-3">
+                    <h3>{{ selectedContent.metadata['flags'] }}</h3>
+                    <p class="mb-0">Flags</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div *ngIf="isAdmin || isModerator" class="btn-group me-auto">
+            <button *ngIf="selectedContent.status !== ContentStatus.PUBLISHED" 
+                    class="btn btn-success" 
+                    (click)="changeContentStatus(selectedContent, ContentStatus.PUBLISHED)">
+              Publish
+            </button>
+            <button *ngIf="selectedContent.status !== ContentStatus.REJECTED" 
+                    class="btn btn-danger" 
+                    (click)="changeContentStatus(selectedContent, ContentStatus.REJECTED)">
+              Reject
+            </button>
+            <button *ngIf="selectedContent.status !== ContentStatus.ARCHIVED" 
+                    class="btn btn-secondary" 
+                    (click)="changeContentStatus(selectedContent, ContentStatus.ARCHIVED)">
+              Archive
+            </button>
+          </div>
+          <button type="button" class="btn btn-outline-secondary" (click)="closeContentView()">Close</button>
+          <button *ngIf="isAdmin" type="button" class="btn btn-outline-danger" 
+                  (click)="deleteContent(selectedContent)">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+  </div>
+</div> 

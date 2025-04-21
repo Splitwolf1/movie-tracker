@@ -1,0 +1,68 @@
+<div class="achievement-details-container">
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading achievement details...</p>
+  </div>
+  
+  <div *ngIf="error" class="error-container">
+    <mat-icon>error</mat-icon>
+    <h3>Error</h3>
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" routerLink="/achievements">Back to Achievements</button>
+  </div>
+
+  <div *ngIf="!loading && !error && (achievement$ | async) as achievement" class="achievement-content">
+    <div class="achievement-header">
+      <button mat-icon-button routerLink="/achievements">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>{{ achievement.title }}</h1>
+    </div>
+
+    <mat-card class="achievement-card" [ngClass]="achievement.rarity">
+      <div class="achievement-icon">
+        <mat-icon *ngIf="achievement.icon">{{ achievement.icon }}</mat-icon>
+        <img *ngIf="!achievement.icon" 
+             [src]="'assets/achievements/' + achievement.id + '.png'" 
+             [alt]="achievement.title">
+        <div *ngIf="!achievement.icon" class="default-icon">
+          <mat-icon>emoji_events</mat-icon>
+        </div>
+      </div>
+
+      <mat-card-content>
+        <h2>{{ achievement.title }}</h2>
+        <span class="rarity-badge" [ngClass]="achievement.rarity">
+          {{ achievement.rarity | titlecase }}
+        </span>
+        
+        <p class="description">{{ achievement.description }}</p>
+        
+        <div class="progress-section">
+          <h3>Progress</h3>
+          <mat-progress-bar 
+            [value]="0"
+            color="primary">
+          </mat-progress-bar>
+          
+          <p class="progress-text">
+            0% Complete
+          </p>
+        </div>
+        
+        <div class="criteria-section" *ngIf="achievement.criteria">
+          <h3>How to Earn</h3>
+          <p>{{ achievement.criteria.type }}</p>
+          <p *ngIf="achievement.criteria.target">
+            Target: {{ achievement.criteria.target }}
+          </p>
+        </div>
+        
+        <div class="reward-section" *ngIf="achievement.points">
+          <h3>Reward</h3>
+          <p>{{ achievement.points }} points</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div> 

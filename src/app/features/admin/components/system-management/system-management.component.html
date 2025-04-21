@@ -1,0 +1,236 @@
+<div class="system-management-container">
+  <div class="page-header">
+    <h1>System Management</h1>
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="refreshData()">
+        <mat-icon>refresh</mat-icon>
+        Refresh Data
+      </button>
+    </div>
+  </div>
+
+  <!-- System Health Section -->
+  <mat-card class="section-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>monitor_heart</mat-icon>
+      <mat-card-title>System Health</mat-card-title>
+      <mat-card-subtitle>Current system status and performance metrics</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div *ngIf="isLoadingHealth" class="loading-container">
+        <mat-spinner diameter="30"></mat-spinner>
+        <span>Loading system health...</span>
+      </div>
+      
+      <div *ngIf="!isLoadingHealth && systemHealth" class="health-info">
+        <div class="health-status" [ngClass]="getHealthStatusClass()">
+          <mat-icon>{{ systemHealth.status === 'healthy' ? 'check_circle' : systemHealth.status === 'warning' ? 'warning' : 'error' }}</mat-icon>
+          <span>System Status: {{ systemHealth.status | titlecase }}</span>
+        </div>
+        
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-title">CPU Usage</div>
+            <div class="metric-value">{{ systemHealth.cpuUsage }}%</div>
+            <mat-progress-bar mode="determinate" [value]="systemHealth.cpuUsage" 
+              [color]="systemHealth.cpuUsage > 80 ? 'warn' : systemHealth.cpuUsage > 60 ? 'accent' : 'primary'">
+            </mat-progress-bar>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-title">Memory Usage</div>
+            <div class="metric-value">{{ systemHealth.memoryUsage }}%</div>
+            <mat-progress-bar mode="determinate" [value]="systemHealth.memoryUsage"
+              [color]="systemHealth.memoryUsage > 80 ? 'warn' : systemHealth.memoryUsage > 60 ? 'accent' : 'primary'">
+            </mat-progress-bar>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-title">Disk Space</div>
+            <div class="metric-value">{{ systemHealth.diskUsage }}%</div>
+            <mat-progress-bar mode="determinate" [value]="systemHealth.diskUsage"
+              [color]="systemHealth.diskUsage > 80 ? 'warn' : systemHealth.diskUsage > 60 ? 'accent' : 'primary'">
+            </mat-progress-bar>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-title">API Response</div>
+            <div class="metric-value">{{ systemHealth.avgResponseTime }} ms</div>
+            <mat-progress-bar mode="determinate" [value]="systemHealth.avgResponseTime / 500 * 100"
+              [color]="systemHealth.avgResponseTime > 300 ? 'warn' : systemHealth.avgResponseTime > 150 ? 'accent' : 'primary'">
+            </mat-progress-bar>
+          </div>
+        </div>
+        
+        <div class="additional-metrics">
+          <div class="stat-item">
+            <span class="stat-label">Uptime:</span>
+            <span class="stat-value">{{ systemHealth.uptime }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Last Restart:</span>
+            <span class="stat-value">{{ systemHealth.lastRestart | date:'medium' }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Error Rate:</span>
+            <span class="stat-value" [ngClass]="{'text-danger': systemHealth.errorRate > 5, 'text-warning': systemHealth.errorRate > 1 && systemHealth.errorRate <= 5}">
+              {{ systemHealth.errorRate }}%
+            </span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Active Users:</span>
+            <span class="stat-value">{{ systemHealth.activeUsers }}</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Backup Management Section -->
+  <mat-card class="section-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>backup</mat-icon>
+      <mat-card-title>Backup Management</mat-card-title>
+      <mat-card-subtitle>Create and restore system backups</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="create-backup-form">
+        <h3>Create New Backup</h3>
+        <form [formGroup]="backupForm" (ngSubmit)="onCreateBackup()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Backup Description</mat-label>
+            <input matInput formControlName="description" placeholder="Enter a description for this backup">
+            <mat-error *ngIf="backupForm.get('description')?.hasError('required')">
+              Description is required
+            </mat-error>
+          </mat-form-field>
+          
+          <button mat-raised-button color="primary" type="submit" [disabled]="backupForm.invalid || isCreatingBackup">
+            <mat-icon>save</mat-icon>
+            <span>Create Backup</span>
+            <mat-spinner *ngIf="isCreatingBackup" diameter="20" class="button-spinner"></mat-spinner>
+          </button>
+        </form>
+      </div>
+      
+      <div class="backup-list">
+        <h3>Available Backups</h3>
+        
+        <div *ngIf="isLoadingBackups" class="loading-container">
+          <mat-spinner diameter="30"></mat-spinner>
+          <span>Loading backups...</span>
+        </div>
+        
+        <div *ngIf="!isLoadingBackups && backups.length === 0" class="no-data">
+          <mat-icon>cloud_off</mat-icon>
+          <p>No backups available</p>
+        </div>
+        
+        <mat-table *ngIf="!isLoadingBackups && backups.length > 0" [dataSource]="backups" class="mat-elevation-z2">
+          <!-- ID Column -->
+          <ng-container matColumnDef="id">
+            <mat-header-cell *matHeaderCellDef>ID</mat-header-cell>
+            <mat-cell *matCellDef="let backup">{{ backup.id }}</mat-cell>
+          </ng-container>
+          
+          <!-- Date Column -->
+          <ng-container matColumnDef="timestamp">
+            <mat-header-cell *matHeaderCellDef>Date</mat-header-cell>
+            <mat-cell *matCellDef="let backup">{{ backup.timestamp | date:'medium' }}</mat-cell>
+          </ng-container>
+          
+          <!-- Size Column -->
+          <ng-container matColumnDef="size">
+            <mat-header-cell *matHeaderCellDef>Size</mat-header-cell>
+            <mat-cell *matCellDef="let backup">{{ backup.size }}</mat-cell>
+          </ng-container>
+          
+          <!-- Description Column -->
+          <ng-container matColumnDef="description">
+            <mat-header-cell *matHeaderCellDef>Description</mat-header-cell>
+            <mat-cell *matCellDef="let backup">{{ backup.description }}</mat-cell>
+          </ng-container>
+          
+          <!-- Created By Column -->
+          <ng-container matColumnDef="createdBy">
+            <mat-header-cell *matHeaderCellDef>Created By</mat-header-cell>
+            <mat-cell *matCellDef="let backup">{{ backup.createdBy }}</mat-cell>
+          </ng-container>
+          
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+            <mat-cell *matCellDef="let backup">
+              <button mat-icon-button color="primary" matTooltip="Restore this backup" (click)="onRestoreBackup(backup.id)" [disabled]="isRestoringBackup">
+                <mat-icon>restore</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" matTooltip="Download backup">
+                <mat-icon>download</mat-icon>
+              </button>
+            </mat-cell>
+          </ng-container>
+          
+          <mat-header-row *matHeaderRowDef="['id', 'timestamp', 'size', 'description', 'createdBy', 'actions']"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: ['id', 'timestamp', 'size', 'description', 'createdBy', 'actions']"></mat-row>
+        </mat-table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- System Logs Section -->
+  <mat-card class="section-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>list_alt</mat-icon>
+      <mat-card-title>System Logs</mat-card-title>
+      <mat-card-subtitle>View and filter system logs</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="logs-header">
+        <div class="log-filters">
+          <mat-form-field appearance="outline">
+            <mat-label>Log Level</mat-label>
+            <mat-select [(value)]="selectedLogLevel" (selectionChange)="onLogLevelChange($event.value)">
+              <mat-option *ngFor="let level of logLevels" [value]="level">
+                {{ level | titlecase }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        
+        <div class="log-actions">
+          <button mat-raised-button color="accent" (click)="downloadLogs()">
+            <mat-icon>download</mat-icon>
+            Download Logs
+          </button>
+        </div>
+      </div>
+      
+      <div *ngIf="isLoadingLogs" class="loading-container">
+        <mat-spinner diameter="30"></mat-spinner>
+        <span>Loading logs...</span>
+      </div>
+      
+      <div *ngIf="!isLoadingLogs && systemLogs.length === 0" class="no-data">
+        <mat-icon>notes</mat-icon>
+        <p>No logs available</p>
+      </div>
+      
+      <div *ngIf="!isLoadingLogs && systemLogs.length > 0" class="logs-container">
+        <div *ngFor="let log of systemLogs" class="log-entry" [ngClass]="getLogLevelClass(log.level)">
+          <div class="log-header">
+            <span class="log-timestamp">{{ log.timestamp | date:'medium' }}</span>
+            <span class="log-level">{{ log.level | uppercase }}</span>
+            <span class="log-source">{{ log.source }}</span>
+          </div>
+          <div class="log-message">{{ log.message }}</div>
+          <div *ngIf="log.details" class="log-details">
+            <pre>{{ log.details | json }}</pre>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div> 

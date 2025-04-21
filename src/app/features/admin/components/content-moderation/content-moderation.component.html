@@ -1,0 +1,336 @@
+<div class="content-moderation-container">
+  <div class="page-header">
+    <h1>Content Moderation</h1>
+    <p class="subtitle">Manage user-generated content and reports</p>
+  </div>
+
+  <mat-tab-group (selectedTabChange)="onTabChange($event)" [selectedIndex]="activeTabIndex">
+    <!-- Reports Tab -->
+    <mat-tab label="Reports">
+      <div class="tab-content">
+        <div class="filters-container">
+          <mat-form-field appearance="outline">
+            <mat-label>Search</mat-label>
+            <input matInput [formControl]="reportsSearchControl" placeholder="Search reports">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Status</mat-label>
+            <mat-select [(value)]="reportsStatusFilter" (selectionChange)="loadReports()">
+              <mat-option value="all">All</mat-option>
+              <mat-option value="pending">Pending</mat-option>
+              <mat-option value="reviewed">Reviewed</mat-option>
+              <mat-option value="resolved">Resolved</mat-option>
+              <mat-option value="dismissed">Dismissed</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Content Type</mat-label>
+            <mat-select [(value)]="reportsContentTypeFilter" (selectionChange)="loadReports()">
+              <mat-option value="all">All</mat-option>
+              <mat-option value="review">Reviews</mat-option>
+              <mat-option value="comment">Comments</mat-option>
+              <mat-option value="user">Users</mat-option>
+              <mat-option value="list">Lists</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="loading-container" *ngIf="isLoading.reports">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading reports...</p>
+        </div>
+
+        <div class="table-container" *ngIf="!isLoading.reports">
+          <table mat-table [dataSource]="reportsDataSource" matSort #reportsSort="matSort">
+            <!-- ID Column -->
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+              <td mat-cell *matCellDef="let report">{{report.id}}</td>
+            </ng-container>
+
+            <!-- Content Type Column -->
+            <ng-container matColumnDef="contentType">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Type</th>
+              <td mat-cell *matCellDef="let report">{{report.contentType | titlecase}}</td>
+            </ng-container>
+
+            <!-- Reason Column -->
+            <ng-container matColumnDef="reason">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Reason</th>
+              <td mat-cell *matCellDef="let report">{{report.reason}}</td>
+            </ng-container>
+
+            <!-- Created At Column -->
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Reported</th>
+              <td mat-cell *matCellDef="let report">{{formatDate(report.createdAt)}}</td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+              <td mat-cell *matCellDef="let report">
+                <span class="status-chip" [ngClass]="getStatusClass(report.status)">
+                  {{report.status | titlecase}}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let report">
+                <button mat-icon-button color="primary" matTooltip="View Content" (click)="viewReportedItem(report)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button color="accent" matTooltip="Mark as Reviewed" 
+                  [disabled]="report.status !== 'pending'"
+                  (click)="changeReportStatus(report.id, 'reviewed')">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" matTooltip="Mark as Resolved" 
+                  [disabled]="report.status === 'resolved'"
+                  (click)="changeReportStatus(report.id, 'resolved')">
+                  <mat-icon>task_alt</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Dismiss Report" 
+                  [disabled]="report.status === 'dismissed'"
+                  (click)="changeReportStatus(report.id, 'dismissed')">
+                  <mat-icon>not_interested</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="reportsDisplayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: reportsDisplayedColumns;"></tr>
+          </table>
+
+          <mat-paginator #reportsPaginator
+            [length]="reportsTotalItems"
+            [pageSize]="reportsPageSize"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            (page)="onReportsPageChange($event)">
+          </mat-paginator>
+        </div>
+
+        <div class="empty-state" *ngIf="!isLoading.reports && reportsDataSource.data.length === 0">
+          <mat-icon>report_off</mat-icon>
+          <p>No reports found matching the current filters</p>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Reviews Tab -->
+    <mat-tab label="Pending Reviews">
+      <div class="tab-content">
+        <div class="loading-container" *ngIf="isLoading.reviews">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading pending reviews...</p>
+        </div>
+
+        <div class="table-container" *ngIf="!isLoading.reviews">
+          <table mat-table [dataSource]="reviewsDataSource">
+            <!-- ID Column -->
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef>ID</th>
+              <td mat-cell *matCellDef="let review">{{review.id}}</td>
+            </ng-container>
+
+            <!-- User ID Column -->
+            <ng-container matColumnDef="userId">
+              <th mat-header-cell *matHeaderCellDef>User</th>
+              <td mat-cell *matCellDef="let review">{{review.userId}}</td>
+            </ng-container>
+
+            <!-- Movie ID Column -->
+            <ng-container matColumnDef="movieId">
+              <th mat-header-cell *matHeaderCellDef>Movie</th>
+              <td mat-cell *matCellDef="let review">{{review.movieId}}</td>
+            </ng-container>
+
+            <!-- Title Column -->
+            <ng-container matColumnDef="title">
+              <th mat-header-cell *matHeaderCellDef>Title</th>
+              <td mat-cell *matCellDef="let review">{{review.title}}</td>
+            </ng-container>
+
+            <!-- Rating Column -->
+            <ng-container matColumnDef="rating">
+              <th mat-header-cell *matHeaderCellDef>Rating</th>
+              <td mat-cell *matCellDef="let review">{{review.rating}}/10</td>
+            </ng-container>
+
+            <!-- Created At Column -->
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef>Created</th>
+              <td mat-cell *matCellDef="let review">{{formatDate(review.createdAt)}}</td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let review">
+                <button mat-icon-button color="primary" matTooltip="View Review">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button color="accent" matTooltip="Approve Review" (click)="approveReview(review.id)">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" matTooltip="Delete Review" (click)="deleteReview(review.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="reviewsDisplayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: reviewsDisplayedColumns;"></tr>
+          </table>
+
+          <mat-paginator #reviewsPaginator
+            [length]="reviewsTotalItems"
+            [pageSize]="reviewsPageSize"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            (page)="onReviewsPageChange($event)">
+          </mat-paginator>
+        </div>
+
+        <div class="empty-state" *ngIf="!isLoading.reviews && reviewsDataSource.data.length === 0">
+          <mat-icon>rate_review</mat-icon>
+          <p>No pending reviews found</p>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Comments Tab -->
+    <mat-tab label="Pending Comments">
+      <div class="tab-content">
+        <div class="loading-container" *ngIf="isLoading.comments">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading pending comments...</p>
+        </div>
+
+        <div class="table-container" *ngIf="!isLoading.comments">
+          <table mat-table [dataSource]="commentsDataSource">
+            <!-- ID Column -->
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef>ID</th>
+              <td mat-cell *matCellDef="let comment">{{comment.id}}</td>
+            </ng-container>
+
+            <!-- User ID Column -->
+            <ng-container matColumnDef="userId">
+              <th mat-header-cell *matHeaderCellDef>User</th>
+              <td mat-cell *matCellDef="let comment">{{comment.userId}}</td>
+            </ng-container>
+
+            <!-- Content Column -->
+            <ng-container matColumnDef="content">
+              <th mat-header-cell *matHeaderCellDef>Content</th>
+              <td mat-cell *matCellDef="let comment" class="content-cell">{{comment.content}}</td>
+            </ng-container>
+
+            <!-- Created At Column -->
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef>Created</th>
+              <td mat-cell *matCellDef="let comment">{{formatDate(comment.createdAt)}}</td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let comment">
+                <button mat-icon-button color="accent" matTooltip="Approve Comment" (click)="approveComment(comment.id)">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" matTooltip="Delete Comment" (click)="deleteComment(comment.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="commentsDisplayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: commentsDisplayedColumns;"></tr>
+          </table>
+
+          <mat-paginator #commentsPaginator
+            [length]="commentsTotalItems"
+            [pageSize]="commentsPageSize"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            (page)="onCommentsPageChange($event)">
+          </mat-paginator>
+        </div>
+
+        <div class="empty-state" *ngIf="!isLoading.comments && commentsDataSource.data.length === 0">
+          <mat-icon>chat</mat-icon>
+          <p>No pending comments found</p>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Actions Log Tab -->
+    <mat-tab label="Action Log">
+      <div class="tab-content">
+        <div class="loading-container" *ngIf="isLoading.actions">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading moderation actions...</p>
+        </div>
+
+        <div class="table-container" *ngIf="!isLoading.actions">
+          <table mat-table [dataSource]="actionsDataSource">
+            <!-- ID Column -->
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef>ID</th>
+              <td mat-cell *matCellDef="let action">{{action.id}}</td>
+            </ng-container>
+
+            <!-- Content Type Column -->
+            <ng-container matColumnDef="contentType">
+              <th mat-header-cell *matHeaderCellDef>Content Type</th>
+              <td mat-cell *matCellDef="let action">{{action.contentType | titlecase}}</td>
+            </ng-container>
+
+            <!-- Action Column -->
+            <ng-container matColumnDef="action">
+              <th mat-header-cell *matHeaderCellDef>Action</th>
+              <td mat-cell *matCellDef="let action">
+                <span class="action-chip" [ngClass]="getActionClass(action.action)">
+                  {{action.action | titlecase}}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Reason Column -->
+            <ng-container matColumnDef="reason">
+              <th mat-header-cell *matHeaderCellDef>Reason</th>
+              <td mat-cell *matCellDef="let action">{{action.reason}}</td>
+            </ng-container>
+
+            <!-- Created At Column -->
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef>Date</th>
+              <td mat-cell *matCellDef="let action">{{formatDate(action.createdAt)}}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="actionsDisplayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: actionsDisplayedColumns;"></tr>
+          </table>
+
+          <mat-paginator #actionsPaginator
+            [length]="actionsTotalItems"
+            [pageSize]="actionsPageSize"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            (page)="onActionsPageChange($event)">
+          </mat-paginator>
+        </div>
+
+        <div class="empty-state" *ngIf="!isLoading.actions && actionsDataSource.data.length === 0">
+          <mat-icon>history</mat-icon>
+          <p>No moderation actions found</p>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div> 

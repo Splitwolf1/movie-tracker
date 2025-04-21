@@ -1,0 +1,40 @@
+<div class="user-reviews-container">
+  <header class="page-header">
+    <h1>My Reviews</h1>
+  </header>
+  
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+  </div>
+  
+  <ng-container *ngIf="!isLoading">
+    <!-- Edit Form -->
+    <div *ngIf="showForm && reviewToEdit && reviewToEdit.movie" class="edit-form-container">
+      <h2>Edit Review</h2>
+      <app-review-form 
+        [movie]="reviewToEdit.movie" 
+        [initialReview]="reviewToEdit"
+        (submitReview)="onReviewSubmit($event)"
+        (cancelReview)="onCancelForm()">
+      </app-review-form>
+    </div>
+    
+    <!-- Reviews List -->
+    <div class="reviews-list" *ngIf="!showForm">
+      <div *ngIf="reviews.length === 0" class="no-reviews-message">
+        <mat-icon>star_border</mat-icon>
+        <h2>You haven't written any reviews yet</h2>
+        <p>Your reviews will appear here once you start writing them.</p>
+      </div>
+      
+      <app-review-list 
+        *ngIf="reviews.length > 0"
+        [reviews]="reviews"
+        [showMovieDetails]="true"
+        (editReview)="onEditReview($event)"
+        (deleteReview)="onDeleteReview($event)"
+        (likeReview)="onLikeReview($event)">
+      </app-review-list>
+    </div>
+  </ng-container>
+</div> 

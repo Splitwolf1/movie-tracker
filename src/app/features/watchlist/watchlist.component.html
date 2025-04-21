@@ -1,0 +1,74 @@
+<div class="watchlist-container">
+  <header class="watchlist-header">
+    <h1>My Watchlist</h1>
+    <div class="watchlist-actions">
+      <mat-form-field appearance="fill">
+        <mat-label>Sort By</mat-label>
+        <mat-select [(ngModel)]="sortType" (selectionChange)="onSortChange()">
+          <mat-option value="dateAdded">Date Added</mat-option>
+          <mat-option value="title">Title</mat-option>
+          <mat-option value="releaseDate">Release Date</mat-option>
+          <mat-option value="popularity">Popularity</mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <button mat-button color="primary" (click)="exportWatchlist()">
+        <mat-icon>file_download</mat-icon>
+        Export
+      </button>
+    </div>
+  </header>
+
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+  </div>
+  
+  <ng-container *ngIf="!isLoading">
+    <div class="empty-watchlist" *ngIf="watchlist.length === 0">
+      <mat-icon class="empty-icon">bookmark_border</mat-icon>
+      <h2>Your watchlist is empty</h2>
+      <p>Add movies or TV shows to your watchlist to keep track of what you want to watch.</p>
+      <button mat-raised-button color="primary" routerLink="/">
+        Discover Movies
+      </button>
+    </div>
+    
+    <div class="watchlist-grid" *ngIf="watchlist.length > 0">
+      <mat-card class="movie-card" *ngFor="let movie of watchlist">
+        <img [src]="getPosterUrl(movie)" [alt]="movie.title" class="movie-poster">
+        
+        <mat-card-content>
+          <h3 class="movie-title">{{ movie.title }}</h3>
+          <div class="movie-info">
+            <span class="release-date">{{ movie.release_date | date:'yyyy' }}</span>
+            <span class="rating">
+              <mat-icon>star</mat-icon>
+              {{ movie.vote_average | number:'1.1-1' }}
+            </span>
+          </div>
+        </mat-card-content>
+        
+        <mat-card-actions>
+          <button mat-icon-button [matMenuTriggerFor]="movieMenu" aria-label="Movie options">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <a mat-button [routerLink]="['/movie', movie.id]">Details</a>
+          <button mat-button color="accent" (click)="markAsWatched(movie)">
+            <mat-icon>visibility</mat-icon> Watched
+          </button>
+        </mat-card-actions>
+        
+        <mat-menu #movieMenu="matMenu">
+          <button mat-menu-item (click)="removeFromWatchlist(movie)">
+            <mat-icon>delete</mat-icon>
+            <span>Remove from watchlist</span>
+          </button>
+          <button mat-menu-item (click)="markAsWatched(movie)">
+            <mat-icon>visibility</mat-icon>
+            <span>Mark as watched</span>
+          </button>
+        </mat-menu>
+      </mat-card>
+    </div>
+  </ng-container>
+</div> 

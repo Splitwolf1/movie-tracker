@@ -1,0 +1,57 @@
+<mat-card 
+  class="achievement-card" 
+  [class.unlocked]="isUnlocked" 
+  [class.locked]="!isUnlocked"
+  [class.secret]="isSecret && !isUnlocked"
+  [ngClass]="rarityClass">
+  
+  <div class="achievement-icon" [matTooltip]="isSecret && !isUnlocked ? 'Secret Achievement' : null">
+    <mat-icon *ngIf="isSecret && !isUnlocked; else iconTemplate">lock</mat-icon>
+    <ng-template #iconTemplate>
+      <img [src]="achievementProgress.achievement.icon" [alt]="achievementProgress.achievement.title" />
+    </ng-template>
+  </div>
+  
+  <div class="achievement-content">
+    <mat-card-title class="achievement-title">
+      <ng-container *ngIf="shouldReveal; else secretTitle">
+        {{ achievementProgress.achievement.title }}
+      </ng-container>
+      <ng-template #secretTitle>Secret Achievement</ng-template>
+    </mat-card-title>
+    
+    <mat-card-subtitle class="achievement-subtitle">
+      <span class="rarity-badge" [ngClass]="rarityClass">
+        {{ getRarityLabel(achievementProgress.achievement.rarity) }}
+      </span>
+      <span class="points-badge">
+        {{ achievementProgress.achievement.points }} points
+      </span>
+    </mat-card-subtitle>
+    
+    <p class="achievement-description" *ngIf="shouldReveal">
+      {{ achievementProgress.achievement.description }}
+    </p>
+    
+    <p class="achievement-description" *ngIf="!shouldReveal">
+      Complete hidden objectives to unlock this achievement.
+    </p>
+    
+    <mat-card-actions>
+      <mat-progress-bar 
+        [value]="progress" 
+        [color]="isUnlocked ? 'accent' : 'primary'"
+        matTooltip="{{ achievementProgress.userAchievement?.progress || 0 }}/{{ achievementProgress.achievement.criteria.target }}">
+      </mat-progress-bar>
+      
+      <div class="progress-text">
+        <ng-container *ngIf="isUnlocked; else progressText">
+          <mat-icon>done</mat-icon> Completed
+        </ng-container>
+        <ng-template #progressText>
+          {{ progress | number:'1.0-0' }}% Complete
+        </ng-template>
+      </div>
+    </mat-card-actions>
+  </div>
+</mat-card> 

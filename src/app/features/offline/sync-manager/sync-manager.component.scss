@@ -1,0 +1,106 @@
+.sync-manager-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  
+  h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  h3 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #444;
+  }
+}
+
+.status-card, .actions-card, .cache-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.status-row, .stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.status-label, .stat-label {
+  font-weight: 500;
+  color: #666;
+}
+
+.status-value, .stat-value {
+  font-weight: 600;
+  
+  &.online {
+    color: #4caf50;
+  }
+  
+  &.offline {
+    color: #f44336;
+  }
+}
+
+.actions-card {
+  display: flex;
+  justify-content: center;
+  
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    mat-spinner {
+      margin-left: 8px;
+    }
+  }
+}
+
+.cache-stats {
+  margin-bottom: 20px;
+}
+
+.cache-actions {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .status-row, .stat-row {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px 0;
+    
+    .status-label, .stat-label {
+      margin-bottom: 5px;
+    }
+  }
+  
+  .cache-actions {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+    }
+  }
+} 

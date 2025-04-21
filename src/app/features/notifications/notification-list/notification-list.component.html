@@ -1,0 +1,73 @@
+<div class="notification-list-container">
+  <div class="notification-header">
+    <h2>Notifications</h2>
+    <div class="header-actions">
+      <button 
+        mat-button 
+        color="primary" 
+        [disabled]="!(unreadCount$ | async) || isLoading"
+        (click)="markAllAsRead()">
+        <mat-icon>done_all</mat-icon>
+        Mark All Read
+      </button>
+    </div>
+  </div>
+
+  <mat-card class="notification-card">
+    <mat-list>
+      <ng-container *ngIf="(notifications$ | async)?.length; else noNotifications">
+        <div *ngFor="let notification of notifications$ | async" class="notification-item">
+          <mat-list-item 
+            [class.unread]="!notification.isRead"
+            (click)="navigateToAction(notification)">
+            
+            <div class="notification-icon" mat-list-avatar>
+              <mat-icon>{{ getNotificationIcon(notification) }}</mat-icon>
+            </div>
+            
+            <div mat-line class="notification-title">
+              {{ notification.title }}
+            </div>
+            
+            <div mat-line class="notification-message">
+              {{ notification.message }}
+            </div>
+            
+            <div mat-line class="notification-time">
+              {{ getNotificationDate(notification) }}
+            </div>
+            
+            <div class="notification-actions">
+              <button 
+                mat-icon-button 
+                *ngIf="!notification.isRead"
+                color="primary"
+                matTooltip="Mark as read"
+                (click)="markAsRead(notification, $event)">
+                <mat-icon>done</mat-icon>
+              </button>
+              
+              <button 
+                mat-icon-button 
+                color="warn"
+                matTooltip="Delete notification"
+                (click)="deleteNotification(notification, $event)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </mat-list-item>
+          
+          <mat-divider></mat-divider>
+        </div>
+      </ng-container>
+      
+      <ng-template #noNotifications>
+        <div class="empty-state">
+          <mat-icon class="empty-icon">notifications_off</mat-icon>
+          <p>No notifications to display</p>
+          <p>You'll see notifications here when you receive them</p>
+        </div>
+      </ng-template>
+    </mat-list>
+  </mat-card>
+</div> 

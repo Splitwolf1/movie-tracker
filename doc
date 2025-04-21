@@ -1,0 +1,130 @@
+Build an Angular 18 web application for a Movie/TV Show Tracking platform using the following requirements:
+
+🔧 Tech Stack:
+- Angular 18
+- TMDB API (`const TMDB_API_KEY = '4f298a53e552283bee957836a529baec'`)
+- OMDB API (https://www.omdbapi.com/)
+- JSON-Server for user data persistence
+- SCSS or TailwindCSS for styling (optional)
+- NgRx for state management
+- Angular Material for UI components
+- Jest for testing
+- ESLint & Prettier for code quality
+
+🌐 Functional Areas:
+1. Guest (Unregistered Users)
+   - Search movies/TV shows by title, genre, actor, director, or year.
+   - View details (title, genre, release date, cast, director, trailer).
+   - Filter options for genre, year.
+   - Registration prompt shown for personalization features.
+   - Trending movies/TV shows section
+   - Upcoming releases calendar
+   - Popular actors/directors showcase
+   - Movie/TV show comparison tool
+
+2. User (Registered Members)
+   - Authentication: Register/Login with username + password (JSON-server).
+   - Profile Management: Edit profile data including name, email, and avatar.
+   - Watchlist & History: Add/remove movies from personalized Watchlist and Watched list.
+   - Ratings & Reviews: Users can rate and write reviews.
+   - Add Movies/TV Shows: Submissions must be admin-approved.
+   - Recommendation Engine: Based on watch history and ratings.
+   - Social: Follow friends, share watchlists, comment.
+   - Notifications: Alerts for new releases, recs, and activity.
+   - Custom Lists: Create and share custom movie/TV show lists
+   - Watch Party: Virtual watch parties with friends
+   - Export/Import: Export watchlist and history
+   - Achievement System: Badges for milestones
+   - Personalized Dashboard: Stats and insights
+   - Offline Mode: Basic functionality without internet
+   - Dark/Light theme support
+   - Accessibility features (WCAG compliance)
+
+3. Admin Dashboard
+   - Admin authentication with extra security.
+   - CRUD: Add, edit, delete Movies/TV Shows.
+   - Approve/reject user-submitted content and reviews.
+   - Manage users: View/edit/delete users, change roles.
+   - Analytics: Dashboard showing top movies, active users, etc.
+   - System Alerts: Error logs, content issues.
+   - Content Moderation Tools
+   - User Activity Reports
+   - System Health Monitoring
+   - Backup & Restore functionality
+
+4. Additional Technical Features
+   - Progressive Web App (PWA) support
+   - Responsive design for all devices
+   - Internationalization (i18n) support
+   - SEO optimization
+   - Performance monitoring
+   - Error tracking and reporting
+   - API rate limiting
+   - Caching strategy
+   - Unit and E2E testing
+   - CI/CD pipeline setup
+
+🗃️ JSON-Server Data Models:
+```json
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "johndoe",
+      "password": "hashed_password",
+      "email": "john@example.com",
+      "role": "user", // or "admin"
+      "preferences": ["action", "drama"],
+      "watchlist": [123, 456], // TMDB IDs
+      "watched": [789],
+      "reviews": [
+        {
+          "movieId": 123,
+          "rating": 4.5,
+          "comment": "Great movie!"
+        }
+      ],
+      "achievements": ["movie-buff", "reviewer"],
+      "customLists": [
+        {
+          "id": 1,
+          "name": "My Favorites",
+          "movies": [123, 456]
+        }
+      ],
+      "settings": {
+        "theme": "dark",
+        "notifications": true,
+        "language": "en"
+      }
+    }
+  ],
+  "movies": [],
+  "reviews": [],
+  "watchParties": [],
+  "notifications": [],
+  "systemLogs": []
+}
+```
+
+🔑 Security:
+- Use JWT for authentication.
+- Implement role-based access control (RBAC).
+- Secure API endpoints with authentication.
+- Implement CSRF protection
+- Rate limiting
+- Input validation
+- XSS protection
+- Regular security audits
+
+📝 Code Quality & Maintainability:
+- Follow Angular style guide
+- Implement proper error handling
+- Comprehensive documentation
+- Code comments and JSDoc
+- Consistent code formatting
+- Regular code reviews
+- Performance optimization
+- Modular architecture
+- Reusable components
+- Proper testing coverage

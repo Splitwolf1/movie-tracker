@@ -1,0 +1,10 @@
+<button 
+  mat-icon-button 
+  [matBadge]="unreadCount$ | async" 
+  [matBadgeHidden]="!(unreadCount$ | async)" 
+  matBadgeColor="warn"
+  matTooltip="Notifications"
+  aria-label="View notifications"
+  (click)="navigateToNotifications()">
+  <mat-icon>notifications</mat-icon>
+</button> 

@@ -1,0 +1,89 @@
+<div class="shared-watchlists-container">
+  <h2>Shared Watchlists</h2>
+  
+  <div class="shared-content-layout">
+    <!-- Shared Watchlists List -->
+    <div class="shared-list">
+      <mat-card *ngIf="(sharedWatchlists$ | async)?.length; else noShared">
+        <mat-list>
+          <mat-list-item *ngFor="let shared of sharedWatchlists$ | async" 
+                         (click)="loadWatchlist(shared)"
+                         [class.selected]="selectedWatchlistId === shared.contentId">
+            <mat-icon mat-list-icon>playlist_play</mat-icon>
+            <div mat-line>{{shared.username}}'s Watchlist</div>
+            <div mat-line class="secondary-text">{{shared.createdAt | date}}</div>
+            <div mat-line *ngIf="shared.message" class="message-preview">{{shared.message}}</div>
+          </mat-list-item>
+        </mat-list>
+      </mat-card>
+      
+      <ng-template #noShared>
+        <mat-card class="empty-state">
+          <mat-icon>playlist_add</mat-icon>
+          <p>No watchlists have been shared yet.</p>
+          <p>Follow friends to see their shared watchlists.</p>
+        </mat-card>
+      </ng-template>
+    </div>
+    
+    <!-- Selected Watchlist Details -->
+    <div class="watchlist-details">
+      <ng-container *ngIf="selectedWatchlist$ && selectedWatchlistId; else selectWatchlist">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Watchlist Details</mat-card-title>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <div class="movies-grid" *ngIf="(selectedWatchlist$ | async)?.length; else emptyWatchlist">
+              <div class="movie-card" *ngFor="let movie of selectedWatchlist$ | async">
+                <img [src]="'https://image.tmdb.org/t/p/w154' + movie.poster_path" 
+                     [alt]="movie.title"
+                     *ngIf="movie.poster_path; else noPoster">
+                <ng-template #noPoster>
+                  <div class="no-poster">No Image</div>
+                </ng-template>
+                
+                <div class="movie-info">
+                  <h3>{{movie.title}}</h3>
+                  <p class="year">{{movie.release_date | date:'yyyy'}}</p>
+                  <p class="rating">
+                    <mat-icon class="star-icon">star</mat-icon>
+                    {{movie.vote_average | number:'1.1-1'}}
+                  </p>
+                  
+                  <button mat-raised-button 
+                          color="primary" 
+                          (click)="addMovieToWatchlist(movie)">
+                    <mat-icon>playlist_add</mat-icon>
+                    Add to My Watchlist
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <ng-template #emptyWatchlist>
+              <div class="empty-watchlist">
+                <p>This watchlist is empty.</p>
+              </div>
+            </ng-template>
+            
+            <!-- Comments Section -->
+            <app-comment-section 
+              *ngIf="selectedWatchlistId"
+              [contentId]="selectedWatchlistId"
+              [contentType]="contentType.LIST">
+            </app-comment-section>
+          </mat-card-content>
+        </mat-card>
+      </ng-container>
+      
+      <ng-template #selectWatchlist>
+        <mat-card class="empty-state">
+          <mat-icon>movie</mat-icon>
+          <p>Select a shared watchlist to view its movies.</p>
+        </mat-card>
+      </ng-template>
+    </div>
+  </div>
+</div> 

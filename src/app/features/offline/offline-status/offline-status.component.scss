@@ -1,0 +1,20 @@
+.offline-status-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  mat-icon {
+    cursor: pointer;
+    font-size: 24px;
+    height: 24px;
+    width: 24px;
+    
+    &.online {
+      color: #4caf50;
+    }
+    
+    &.offline {
+      color: #f44336;
+    }
+  }
+} 

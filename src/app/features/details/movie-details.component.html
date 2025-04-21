@@ -1,0 +1,43 @@
+<!-- Movie Details page -->
+<div class="movie-details-container" *ngIf="!loading && movie">
+  <div class="movie-backdrop" [style.background-image]="'url(' + getBackdropUrl(movie) + ')'">
+    <div class="backdrop-overlay"></div>
+  </div>
+
+  <div class="content-container">
+    <div class="poster-container">
+      <img [src]="getPosterUrl(movie)" [alt]="movie.title + ' poster'" class="movie-poster">
+      
+      <!-- Watchlist Button -->
+      <div class="action-buttons">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          class="watchlist-button" 
+          *ngIf="!isInWatchlist"
+          (click)="addToWatchlist()">
+          <mat-icon>bookmark_add</mat-icon> Add to Watchlist
+        </button>
+        <button 
+          mat-raised-button 
+          color="warn" 
+          class="watchlist-button" 
+          *ngIf="isInWatchlist"
+          (click)="removeFromWatchlist()">
+          <mat-icon>bookmark_remove</mat-icon> Remove from Watchlist
+        </button>
+      </div>
+    </div>
+
+    <div class="details-container">
+      <!-- ... existing code ... -->
+    </div>
+  </div>
+  
+  <!-- ... existing code ... -->
+</div>
+
+<!-- Loading spinner -->
+<div class="loading-container" *ngIf="loading">
+  <!-- ... existing code ... -->
+</div> 

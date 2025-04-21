@@ -1,0 +1,80 @@
+<div class="reviews-container">
+  <div *ngIf="reviews.length === 0" class="no-reviews">
+    <mat-icon>rate_review</mat-icon>
+    <p>No reviews yet. Be the first to share your thoughts!</p>
+  </div>
+  
+  <div *ngFor="let review of reviews" class="review-card">
+    <!-- Review Header -->
+    <div class="review-header">
+      <div class="user-info">
+        <mat-icon class="user-avatar">account_circle</mat-icon>
+        <div class="user-details">
+          <span class="username">User {{ review.userId.substring(0, 5) }}</span>
+          <div class="rating-display">
+            <mat-icon *ngFor="let star of getStarsArray(review.rating)" class="star-icon">star</mat-icon>
+            <span class="rating-text">{{ review.rating }}/10</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="review-date">
+        {{ formatDate(review.createdAt) }}
+        <span *ngIf="review.updatedAt && review.updatedAt !== review.createdAt">(Edited)</span>
+      </div>
+    </div>
+
+    <!-- Movie Details (optional) -->
+    <div *ngIf="showMovieDetails && review.movie" class="movie-details">
+      <img 
+        [src]="review.movie.poster_path ? 'https://image.tmdb.org/t/p/w92' + review.movie.poster_path : 'assets/images/no-poster.jpg'" 
+        [alt]="review.movie.title" 
+        class="movie-poster">
+      <div class="movie-info">
+        <h4 class="movie-title">{{ review.movie.title }}</h4>
+        <span class="movie-year">{{ review.movie.release_date | date:'yyyy' }}</span>
+      </div>
+    </div>
+
+    <!-- Review Content -->
+    <div class="review-content">
+      <h3 class="review-title">{{ review.title }}</h3>
+      
+      <div *ngIf="review.containsSpoilers" class="spoiler-warning">
+        <mat-icon>warning</mat-icon>
+        <span>Contains spoilers</span>
+      </div>
+      
+      <p class="review-text">{{ review.content }}</p>
+    </div>
+    
+    <!-- Review Actions -->
+    <div class="review-actions">
+      <button 
+        mat-button 
+        (click)="onLikeReview(review)"
+        color="primary">
+        <mat-icon>thumb_up</mat-icon>
+        {{ review.likes || 0 }}
+      </button>
+      
+      <div *ngIf="isUserReview(review) && canEdit" class="user-actions">
+        <button 
+          mat-button 
+          (click)="onEditReview(review)"
+          color="primary">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+        
+        <button 
+          mat-button 
+          (click)="onDeleteReview(review)"
+          color="warn">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div> 

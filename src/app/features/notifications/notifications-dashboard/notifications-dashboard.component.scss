@@ -1,0 +1,23 @@
+.notifications-dashboard {
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  
+  h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 500;
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+} 

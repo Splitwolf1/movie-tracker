@@ -1,0 +1,171 @@
+.reviews-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.no-reviews {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  text-align: center;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  
+  mat-icon {
+    font-size: 48px;
+    height: 48px;
+    width: 48px;
+    margin-bottom: 16px;
+    color: #ccc;
+  }
+  
+  p {
+    color: #666;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+}
+
+.review-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  font-size: 40px;
+  height: 40px;
+  width: 40px;
+  color: #aaa;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.username {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.rating-display {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.star-icon {
+  color: #f5c518;
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+}
+
+.rating-text {
+  margin-left: 4px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.review-date {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.movie-details {
+  display: flex;
+  gap: 12px;
+  background-color: #f8f8f8;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.movie-poster {
+  width: 46px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.movie-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.movie-title {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+}
+
+.movie-year {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.review-content {
+  margin-bottom: 16px;
+}
+
+.review-title {
+  margin: 0 0 12px 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.spoiler-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffeeee;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  color: #e53935;
+  font-size: 0.9rem;
+  
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+}
+
+.review-text {
+  white-space: pre-line;
+  line-height: 1.5;
+  color: #333;
+  margin: 0;
+}
+
+.review-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+}
+
+.user-actions {
+  display: flex;
+  gap: 8px;
+} 

@@ -1,0 +1,79 @@
+<div class="review-form-container">
+  <h2 class="form-title">
+    {{ isEditMode ? 'Edit Your Review' : 'Write a Review' }}
+  </h2>
+  
+  <p class="movie-title" *ngIf="movie">for <strong>{{ movie.title }}</strong></p>
+
+  <form [formGroup]="reviewForm" (ngSubmit)="onSubmit()">
+    <!-- Rating Stars -->
+    <div class="rating-container">
+      <label>Your Rating:</label>
+      <div class="rating-stars">
+        <button 
+          type="button"
+          *ngFor="let star of [1,2,3,4,5,6,7,8,9,10]" 
+          class="star-button"
+          [class.filled]="star <= ratingValue"
+          (click)="setRating(star)"
+          (mouseenter)="hoverValue = star"
+          (mouseleave)="hoverValue = 0">
+          <mat-icon>{{ (star <= (hoverValue || ratingValue)) ? 'star' : 'star_border' }}</mat-icon>
+        </button>
+      </div>
+      <div class="rating-value">{{ ratingValue || hoverValue || 0 }}/10</div>
+      <mat-error *ngIf="isRatingInvalid">Please select a rating</mat-error>
+    </div>
+
+    <!-- Review Title -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Review Title</mat-label>
+      <input matInput formControlName="title" placeholder="Summarize your thoughts">
+      <mat-error *ngIf="isTitleInvalid">
+        <span *ngIf="titleControl.errors?.['required']">Title is required</span>
+        <span *ngIf="titleControl.errors?.['maxlength']">Title cannot exceed 100 characters</span>
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Review Content -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Your Review</mat-label>
+      <textarea 
+        matInput 
+        formControlName="content"
+        placeholder="Share your thoughts about the movie" 
+        rows="6">
+      </textarea>
+      <mat-hint align="end">{{ contentControl.value?.length || 0 }}/2000</mat-hint>
+      <mat-error *ngIf="isContentInvalid">
+        <span *ngIf="contentControl.errors?.['required']">Review content is required</span>
+        <span *ngIf="contentControl.errors?.['minlength']">Review must be at least 10 characters</span>
+        <span *ngIf="contentControl.errors?.['maxlength']">Review cannot exceed 2000 characters</span>
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Spoiler Toggle -->
+    <div class="spoiler-toggle">
+      <mat-checkbox formControlName="containsSpoilers">
+        This review contains spoilers
+      </mat-checkbox>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button 
+        type="button" 
+        mat-button 
+        (click)="onCancel()">
+        Cancel
+      </button>
+      <button 
+        type="submit" 
+        mat-raised-button 
+        color="primary"
+        [disabled]="reviewForm.invalid || isRatingInvalid">
+        {{ isEditMode ? 'Update Review' : 'Submit Review' }}
+      </button>
+    </div>
+  </form>
+</div> 

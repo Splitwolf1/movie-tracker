@@ -1,0 +1,349 @@
+<div class="user-management">
+  <div class="container-fluid">
+    <div class="row mb-4">
+      <div class="col-12">
+        <h2 class="mb-3">User Management</h2>
+        
+        <div class="d-flex justify-content-end mb-3">
+          <button class="btn btn-outline-secondary me-2" (click)="resetFilters()">
+            Reset Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Filters -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">Filters</h5>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="filterForm" class="row g-3">
+              <div class="col-md-6">
+                <label for="searchQuery" class="form-label">Search</label>
+                <input type="text" id="searchQuery" class="form-control" 
+                       placeholder="Search by username or email..." 
+                       formControlName="searchQuery">
+              </div>
+              
+              <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select id="status" class="form-select" formControlName="status">
+                  <option value="">All Statuses</option>
+                  <option *ngFor="let option of statusOptions" 
+                          [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
+              
+              <div class="col-md-3">
+                <label for="roles" class="form-label">Role</label>
+                <select id="roles" class="form-select" multiple formControlName="roles">
+                  <option *ngFor="let option of roleOptions" 
+                          [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
+              
+              <div class="col-md-3">
+                <label for="dateFrom" class="form-label">From Date</label>
+                <input type="date" id="dateFrom" class="form-control" 
+                       formControlName="dateFrom">
+              </div>
+              
+              <div class="col-md-3">
+                <label for="dateTo" class="form-label">To Date</label>
+                <input type="date" id="dateTo" class="form-control" 
+                       formControlName="dateTo">
+              </div>
+              
+              <div class="col-md-3">
+                <label for="sortBy" class="form-label">Sort By</label>
+                <select id="sortBy" class="form-select" formControlName="sortBy">
+                  <option *ngFor="let option of sortOptions" 
+                          [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
+              
+              <div class="col-md-3">
+                <label for="sortDirection" class="form-label">Direction</label>
+                <select id="sortDirection" class="form-select" formControlName="sortDirection">
+                  <option value="asc">Ascending</option>
+                  <option value="desc">Descending</option>
+                </select>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Users List -->
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">Users</h5>
+          </div>
+          <div class="card-body p-0">
+            <div *ngIf="isLoading" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2">Loading users...</p>
+            </div>
+            
+            <div *ngIf="!isLoading && filteredUsers.length === 0" class="text-center py-5">
+              <p class="mb-0">No users found.</p>
+            </div>
+            
+            <table *ngIf="!isLoading && filteredUsers.length > 0" class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Roles</th>
+                  <th>Registered</th>
+                  <th>Last Login</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let user of filteredUsers">
+                  <td>{{ user.username }}</td>
+                  <td>{{ user.email }}</td>
+                  <td>
+                    <span [ngClass]="getStatusClass(user.accountStatus)">
+                      {{ user.accountStatus || 'Active' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge bg-primary me-1" *ngFor="let role of user.roles">
+                      {{ role }}
+                    </span>
+                  </td>
+                  <td>{{ formatDate(user.createdAt) }}</td>
+                  <td>{{ formatDate(user.lastLogin) }}</td>
+                  <td>
+                    <div class="btn-group">
+                      <button class="btn btn-sm btn-outline-primary" 
+                              (click)="viewUserDetails(user)">
+                        View
+                      </button>
+                      
+                      <div *ngIf="isAdmin || isModerator" class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" 
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                          Actions
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li *ngIf="user.accountStatus !== UserStatus.ACTIVE">
+                            <a class="dropdown-item" href="#" 
+                               (click)="$event.preventDefault(); changeUserStatus(user, UserStatus.ACTIVE)">
+                              Activate
+                            </a>
+                          </li>
+                          <li *ngIf="user.accountStatus !== UserStatus.SUSPENDED">
+                            <a class="dropdown-item" href="#" 
+                               (click)="$event.preventDefault(); changeUserStatus(user, UserStatus.SUSPENDED)">
+                              Suspend
+                            </a>
+                          </li>
+                          <li *ngIf="user.accountStatus !== UserStatus.BANNED && isAdmin">
+                            <a class="dropdown-item" href="#" 
+                               (click)="$event.preventDefault(); changeUserStatus(user, UserStatus.BANNED)">
+                              Ban
+                            </a>
+                          </li>
+                          <li *ngIf="isAdmin"><hr class="dropdown-divider"></li>
+                          <li *ngIf="isAdmin">
+                            <a class="dropdown-item" href="#" 
+                               (click)="$event.preventDefault(); resetPassword(user)">
+                              Reset Password
+                            </a>
+                          </li>
+                          <li *ngIf="isAdmin">
+                            <a class="dropdown-item text-danger" href="#" 
+                               (click)="$event.preventDefault(); deleteUser(user)">
+                              Delete
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Activity Sidebar -->
+      <div class="col-lg-4">
+        <div class="card mb-4">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">Recent Activity</h5>
+          </div>
+          <div class="card-body p-0">
+            <div *ngIf="isLoadingActivity" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2">Loading activity...</p>
+            </div>
+            
+            <div *ngIf="!isLoadingActivity && recentActivity.length === 0" class="text-center py-5">
+              <p class="mb-0">No recent activity.</p>
+            </div>
+            
+            <ul *ngIf="!isLoadingActivity && recentActivity.length > 0" class="list-group list-group-flush">
+              <li *ngFor="let activity of recentActivity" class="list-group-item">
+                <div class="d-flex">
+                  <div class="flex-shrink-0">
+                    <span class="badge rounded-pill bg-secondary">
+                      {{ activity.action }}
+                    </span>
+                  </div>
+                  <div class="ms-3">
+                    <p class="mb-0">{{ activity.details }}</p>
+                    <small class="text-muted">
+                      User ID: {{ activity.userId }} - {{ formatDate(activity.timestamp) }}
+                    </small>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Admin Logs (Admin only) -->
+        <div *ngIf="isAdmin" class="card">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">Admin Actions</h5>
+          </div>
+          <div class="card-body p-0">
+            <div *ngIf="adminLogs.length === 0" class="text-center py-5">
+              <p class="mb-0">No admin actions.</p>
+            </div>
+            
+            <ul *ngIf="adminLogs.length > 0" class="list-group list-group-flush">
+              <li *ngFor="let log of adminLogs" class="list-group-item">
+                <div class="d-flex">
+                  <div class="flex-shrink-0">
+                    <span class="badge rounded-pill bg-info">
+                      {{ log.action }}
+                    </span>
+                  </div>
+                  <div class="ms-3">
+                    <p class="mb-0">{{ log.details }}</p>
+                    <small class="text-muted">
+                      By: {{ log.adminId }} - {{ formatDate(log.timestamp) }}
+                    </small>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Detail Modal -->
+  <div *ngIf="selectedUser && isViewingUserDetails" class="modal fade show" style="display: block;" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">User Details: {{ selectedUser.username }}</h5>
+          <button type="button" class="btn-close" (click)="closeUserDetails()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <h6>Basic Information</h6>
+              <p><strong>Username:</strong> {{ selectedUser.username }}</p>
+              <p><strong>Email:</strong> {{ selectedUser.email }}</p>
+              <p>
+                <strong>Status:</strong> 
+                <span [ngClass]="getStatusClass(selectedUser.accountStatus)">
+                  {{ selectedUser.accountStatus || 'Active' }}
+                </span>
+              </p>
+              <p><strong>Registered:</strong> {{ formatDate(selectedUser.createdAt) }}</p>
+              <p><strong>Last Login:</strong> {{ formatDate(selectedUser.lastLogin) }}</p>
+            </div>
+            
+            <div class="col-md-6">
+              <h6>Roles</h6>
+              <div class="form-check mb-2" *ngFor="let role of roleOptions">
+                <input class="form-check-input" type="checkbox"
+                       [id]="'role-' + role.value"
+                       [checked]="hasRole(selectedUser, role.value)"
+                       [disabled]="!isAdmin"
+                       (change)="updateUserRoles(selectedUser, role.value, $any($event.target).checked)">
+                <label class="form-check-label" [for]="'role-' + role.value">
+                  {{ role.label }}
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-12 mb-3">
+              <h6>Actions</h6>
+              <div class="btn-group">
+                <button *ngIf="selectedUser.accountStatus !== UserStatus.ACTIVE" 
+                        class="btn btn-success me-2"
+                        (click)="changeUserStatus(selectedUser, UserStatus.ACTIVE)">
+                  Activate
+                </button>
+                <button *ngIf="selectedUser.accountStatus !== UserStatus.SUSPENDED" 
+                        class="btn btn-warning me-2"
+                        (click)="changeUserStatus(selectedUser, UserStatus.SUSPENDED)">
+                  Suspend
+                </button>
+                <button *ngIf="selectedUser.accountStatus !== UserStatus.BANNED && isAdmin" 
+                        class="btn btn-danger me-2"
+                        (click)="changeUserStatus(selectedUser, UserStatus.BANNED)">
+                  Ban
+                </button>
+                
+                <button *ngIf="isAdmin" class="btn btn-outline-primary me-2"
+                        (click)="resetPassword(selectedUser)">
+                  Reset Password
+                </button>
+                
+                <button *ngIf="isAdmin" class="btn btn-outline-danger"
+                        (click)="deleteUser(selectedUser)">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-12">
+              <h6>View More</h6>
+              <button class="btn btn-outline-secondary"
+                      (click)="viewUserProfile(selectedUser.id)">
+                View Full Profile
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeUserDetails()">Close</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+  </div>
+</div> 

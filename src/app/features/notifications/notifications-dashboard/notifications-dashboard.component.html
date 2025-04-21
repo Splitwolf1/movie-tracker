@@ -1,0 +1,17 @@
+<div class="notifications-dashboard">
+  <div class="dashboard-header">
+    <h1>Notifications</h1>
+    <div class="header-actions">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        [routerLink]="['/notifications/settings']"
+        aria-label="Notification settings">
+        <mat-icon>settings</mat-icon>
+        Settings
+      </button>
+    </div>
+  </div>
+  
+  <router-outlet></router-outlet>
+</div> 

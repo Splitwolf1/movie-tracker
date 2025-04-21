@@ -1,0 +1,52 @@
+.notification-settings-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+mat-card {
+  margin-bottom: 1.5rem;
+}
+
+.settings-section {
+  margin: 1.5rem 0;
+  
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    color: rgba(0, 0, 0, 0.87);
+  }
+}
+
+.settings-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+mat-checkbox {
+  display: flex;
+  flex-direction: column;
+  
+  .setting-description {
+    font-size: 0.8rem;
+    color: rgba(0, 0, 0, 0.54);
+    margin-left: 24px;
+    margin-top: 0.25rem;
+  }
+}
+
+mat-divider {
+  margin: 2rem 0;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  
+  button {
+    min-width: 150px;
+  }
+} 

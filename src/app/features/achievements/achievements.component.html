@@ -1,0 +1,56 @@
+<div class="achievements-container">
+  <div class="header">
+    <h1>Achievements</h1>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value">{{ totalPoints }}</div>
+        <div class="stat-label">Total Points</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ completedCount }}/{{ totalCount }}</div>
+        <div class="stat-label">Achievements Unlocked</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="categories">
+    <button mat-button 
+            [class.active]="activeCategory === 'all'" 
+            (click)="filterByCategory('all')">
+      All
+    </button>
+    
+    <ng-container *ngFor="let category of categories">
+      <button mat-button 
+              [class.active]="activeCategory === category" 
+              (click)="filterByCategory(category)">
+        {{ getCategoryName(category) }}
+      </button>
+    </ng-container>
+  </div>
+
+  <div class="achievements-grid">
+    <ng-container *ngIf="(achievements$ | async) as achievements">
+      <ng-container *ngIf="achievements.length > 0; else noAchievements">
+        <app-achievement-card 
+          *ngFor="let achievementProgress of achievements" 
+          [achievementProgress]="achievementProgress"
+          (click)="viewAchievementDetails(achievementProgress.achievement)">
+        </app-achievement-card>
+      </ng-container>
+      
+      <ng-template #noAchievements>
+        <div class="no-achievements">
+          <mat-icon>emoji_events</mat-icon>
+          <h2>No achievements found for this category</h2>
+          <p>Try selecting a different category</p>
+        </div>
+      </ng-template>
+    </ng-container>
+    
+    <div class="loading" *ngIf="!(achievements$ | async)">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading achievements...</p>
+    </div>
+  </div>
+</div> 

@@ -1,0 +1,61 @@
+<h2 mat-dialog-title>Add to List</h2>
+
+<div mat-dialog-content>
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="30"></mat-spinner>
+    <p>Loading your lists...</p>
+  </div>
+
+  <div *ngIf="!isLoading">
+    <div class="movie-info">
+      <img *ngIf="data.movie.poster_path" [src]="'https://image.tmdb.org/t/p/w92' + data.movie.poster_path" [alt]="data.movie.title" class="movie-poster">
+      <div class="movie-details">
+        <h3>{{ data.movie.title }}</h3>
+        <p *ngIf="data.movie.release_date">{{ data.movie.release_date | date:'yyyy' }}</p>
+      </div>
+    </div>
+
+    <div class="search-container">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Search your lists</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Start typing to search">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <div class="lists-container">
+      <div *ngIf="!customLists.length" class="no-lists">
+        <p>You don't have any custom lists yet.</p>
+        <button mat-raised-button color="primary" (click)="createNewList()">Create Your First List</button>
+      </div>
+
+      <mat-selection-list *ngIf="customLists.length">
+        <mat-list-option *ngFor="let list of filteredLists | async" 
+                         [selected]="isSelected(list)"
+                         (click)="toggleList(list)"
+                         [disabled]="isProcessing(list.id)"
+                         checkboxPosition="before">
+          <div class="list-item">
+            <div>
+              <h4 matLine>{{ list.name }}</h4>
+              <p matLine>{{ list.items.length }} {{ list.items.length === 1 ? 'movie' : 'movies' }}</p>
+            </div>
+            <mat-spinner *ngIf="isProcessing(list.id)" diameter="20"></mat-spinner>
+          </div>
+        </mat-list-option>
+      </mat-selection-list>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width notes-field">
+      <mat-label>Add notes (optional)</mat-label>
+      <textarea matInput [formControl]="notes" placeholder="Add notes about this movie"></textarea>
+    </mat-form-field>
+  </div>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" [disabled]="!selectedLists.length || isLoading" (click)="addToLists()">
+    Add to {{ selectedLists.length }} {{ selectedLists.length === 1 ? 'List' : 'Lists' }}
+  </button>
+</div> 

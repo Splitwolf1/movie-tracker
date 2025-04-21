@@ -1,0 +1,77 @@
+<div class="notification-settings-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Notification Settings</mat-card-title>
+      <mat-card-subtitle>Customize what notifications you receive</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="settingsForm" (ngSubmit)="savePreferences()">
+        <div class="settings-section">
+          <h3>In-App Notifications</h3>
+          
+          <div class="settings-options">
+            <mat-checkbox formControlName="friendRequests">
+              Friend Requests
+              <span class="setting-description">Get notified when someone sends you a friend request</span>
+            </mat-checkbox>
+            
+            <mat-checkbox formControlName="friendActivity">
+              Friend Activity
+              <span class="setting-description">Get notified about your friends' activities</span>
+            </mat-checkbox>
+            
+            <mat-checkbox formControlName="comments">
+              Comments
+              <span class="setting-description">Get notified when someone comments on your content</span>
+            </mat-checkbox>
+            
+            <mat-checkbox formControlName="recommendations">
+              Recommendations
+              <span class="setting-description">Get notified when someone recommends you a movie</span>
+            </mat-checkbox>
+            
+            <mat-checkbox formControlName="achievements">
+              Achievements
+              <span class="setting-description">Get notified when you unlock an achievement</span>
+            </mat-checkbox>
+            
+            <mat-checkbox formControlName="systemNotifications">
+              System Notifications
+              <span class="setting-description">Get notified about system updates and announcements</span>
+            </mat-checkbox>
+          </div>
+        </div>
+        
+        <mat-divider></mat-divider>
+        
+        <div class="settings-section">
+          <h3>External Notifications</h3>
+          
+          <div class="settings-options">
+            <mat-checkbox formControlName="emailNotifications">
+              Email Notifications
+              <span class="setting-description">Receive important notifications via email</span>
+            </mat-checkbox>
+            
+            <mat-checkbox formControlName="pushNotifications">
+              Push Notifications
+              <span class="setting-description">Receive push notifications on your device</span>
+            </mat-checkbox>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            type="submit"
+            [disabled]="settingsForm.invalid || isSaving">
+            <mat-icon>save</mat-icon>
+            Save Preferences
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div> 

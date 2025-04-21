@@ -1,0 +1,104 @@
+<div class="custom-lists-container">
+  <div class="header">
+    <h1>My Custom Lists</h1>
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon> Create New List
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search Lists</mat-label>
+      <input matInput placeholder="Search by name or description" (input)="applySearch($any($event.target).value)">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="sort-field">
+      <mat-label>Sort By</mat-label>
+      <mat-select [value]="filter.sortBy" (selectionChange)="applySort($event.value)">
+        <mat-option *ngFor="let option of sortOptions" [value]="option.value">
+          {{ option.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading your custom lists...</p>
+  </div>
+
+  <div *ngIf="!isLoading" class="lists-grid">
+    <ng-container *ngIf="(customLists$ | async)?.length; else noLists">
+      <div class="list-card" *ngFor="let list of customLists$ | async">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>{{ list.name }}</mat-card-title>
+            <mat-card-subtitle>
+              {{ list.items.length }} {{ list.items.length === 1 ? 'movie' : 'movies' }}
+              <span *ngIf="list.isPublic" class="visibility-badge public">Public</span>
+              <span *ngIf="!list.isPublic" class="visibility-badge private">Private</span>
+            </mat-card-subtitle>
+            <button mat-icon-button [matMenuTriggerFor]="menu" class="more-menu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item [routerLink]="['./', list.id]">
+                <mat-icon>visibility</mat-icon>
+                <span>View List</span>
+              </button>
+              <button mat-menu-item (click)="openEditDialog(list)">
+                <mat-icon>edit</mat-icon>
+                <span>Edit List</span>
+              </button>
+              <button mat-menu-item (click)="deleteList(list)">
+                <mat-icon>delete</mat-icon>
+                <span>Delete List</span>
+              </button>
+            </mat-menu>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <p class="list-description">{{ list.description }}</p>
+            
+            <div class="tags" *ngIf="list.tags && list.tags.length > 0">
+              <mat-chip-listbox>
+                <mat-chip *ngFor="let tag of list.tags">{{ tag }}</mat-chip>
+              </mat-chip-listbox>
+            </div>
+            
+            <div class="metadata">
+              <div class="date">
+                <mat-icon>calendar_today</mat-icon>
+                <span>Created {{ list.createdAt | date:'mediumDate' }}</span>
+              </div>
+              <div class="date">
+                <mat-icon>update</mat-icon>
+                <span>Updated {{ list.updatedAt | date:'mediumDate' }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+          
+          <mat-card-actions align="end">
+            <button mat-button color="primary" [routerLink]="['./', list.id]">
+              VIEW LIST
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </ng-container>
+    
+    <ng-template #noLists>
+      <div class="no-lists">
+        <mat-icon>list_alt</mat-icon>
+        <h2>No custom lists yet</h2>
+        <p>Create your first custom list to organize your favorite movies!</p>
+        <button mat-raised-button color="primary" (click)="openCreateDialog()">
+          Create Your First List
+        </button>
+      </div>
+    </ng-template>
+  </div>
+</div> 

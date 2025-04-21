@@ -1,0 +1,65 @@
+<div class="sync-manager-container">
+  <h2>Offline Synchronization Manager</h2>
+  
+  <div class="status-card">
+    <div class="status-row">
+      <span class="status-label">Network Status:</span>
+      <span class="status-value" [ngClass]="{'online': (isOnline$ | async), 'offline': !(isOnline$ | async)}">
+        {{ (isOnline$ | async) ? 'Online' : 'Offline' }}
+      </span>
+    </div>
+    
+    <div class="status-row">
+      <span class="status-label">Pending Operations:</span>
+      <span class="status-value">{{ pendingSyncCount }}</span>
+    </div>
+    
+    <div class="status-row" *ngIf="lastSyncTime">
+      <span class="status-label">Last Synchronized:</span>
+      <span class="status-value">{{ lastSyncTime | date:'medium' }}</span>
+    </div>
+  </div>
+  
+  <div class="actions-card">
+    <button mat-raised-button color="primary" 
+            [disabled]="!pendingSyncCount || !(isOnline$ | async) || syncInProgress"
+            (click)="syncData()">
+      <mat-icon>sync</mat-icon>
+      Synchronize Data
+      <mat-spinner *ngIf="syncInProgress" diameter="20"></mat-spinner>
+    </button>
+  </div>
+  
+  <div class="cache-card">
+    <h3>Cache Information</h3>
+    
+    <div class="cache-stats" *ngIf="cacheStats">
+      <div class="stat-row">
+        <span class="stat-label">Total Cached Items:</span>
+        <span class="stat-value">{{ cacheStats.totalItems }}</span>
+      </div>
+      
+      <div class="stat-row">
+        <span class="stat-label">Expired Items:</span>
+        <span class="stat-value">{{ cacheStats.expiredItems }}</span>
+      </div>
+      
+      <div class="stat-row">
+        <span class="stat-label">Total Cache Size:</span>
+        <span class="stat-value">{{ cacheStats.totalSizeMB }} MB</span>
+      </div>
+    </div>
+    
+    <div class="cache-actions">
+      <button mat-button color="accent" (click)="clearExpiredCache()">
+        <mat-icon>cleaning_services</mat-icon>
+        Clear Expired Cache
+      </button>
+      
+      <button mat-button color="warn" (click)="clearCache()">
+        <mat-icon>delete_sweep</mat-icon>
+        Clear All Cache
+      </button>
+    </div>
+  </div>
+</div> 

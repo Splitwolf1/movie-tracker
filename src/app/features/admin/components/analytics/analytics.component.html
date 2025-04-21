@@ -1,0 +1,273 @@
+<div class="analytics-container">
+  <div class="header">
+    <h1>Analytics Dashboard</h1>
+    
+    <div class="time-range-form">
+      <form [formGroup]="timeRangeForm" class="time-range-controls">
+        <mat-form-field appearance="outline">
+          <mat-label>Time Range</mat-label>
+          <mat-select formControlName="range">
+            <mat-option *ngFor="let option of timeRangeOptions" [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <ng-container *ngIf="timeRangeForm.get('range')?.value === 'custom'">
+          <mat-form-field appearance="outline">
+            <mat-label>Start Date</mat-label>
+            <input matInput [matDatepicker]="startPicker" formControlName="startDate">
+            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline">
+            <mat-label>End Date</mat-label>
+            <input matInput [matDatepicker]="endPicker" formControlName="endDate">
+            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+          
+          <button mat-raised-button color="primary" (click)="applyCustomRange()">
+            Apply
+          </button>
+        </ng-container>
+      </form>
+      
+      <div class="report-actions">
+        <button mat-raised-button [matMenuTriggerFor]="reportMenu" [disabled]="isGeneratingReport">
+          <mat-icon>download</mat-icon>
+          Export Report
+        </button>
+        <mat-menu #reportMenu="matMenu">
+          <button mat-menu-item (click)="generateReport('pdf')">
+            <mat-icon>picture_as_pdf</mat-icon>
+            <span>PDF</span>
+          </button>
+          <button mat-menu-item (click)="generateReport('csv')">
+            <mat-icon>format_list_bulleted</mat-icon>
+            <span>CSV</span>
+          </button>
+          <button mat-menu-item (click)="generateReport('json')">
+            <mat-icon>code</mat-icon>
+            <span>JSON</span>
+          </button>
+        </mat-menu>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Stats Overview Section -->
+  <div class="stats-overview">
+    <div class="stats-row">
+      <!-- User Statistics Card -->
+      <mat-card class="stats-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>people</mat-icon>
+          <mat-card-title>User Statistics</mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div *ngIf="isLoadingUserStats" class="loading-spinner">
+            <mat-spinner diameter="30"></mat-spinner>
+          </div>
+          
+          <div *ngIf="!isLoadingUserStats && userStats" class="stats-content">
+            <div class="stat-item">
+              <span class="stat-label">Total Users:</span>
+              <span class="stat-value">{{ userStats.totalUsers }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Active Users:</span>
+              <span class="stat-value">{{ userStats.activeUsers }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">New Users:</span>
+              <span class="stat-value">{{ userStats.newUsers }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Growth:</span>
+              <span class="stat-value" [ngClass]="userStats.growth >= 0 ? 'positive' : 'negative'">
+                {{ userStats.growth >= 0 ? '+' : '' }}{{ userStats.growth }}%
+              </span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <!-- Content Statistics Card -->
+      <mat-card class="stats-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>movie</mat-icon>
+          <mat-card-title>Content Statistics</mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div *ngIf="isLoadingContentStats" class="loading-spinner">
+            <mat-spinner diameter="30"></mat-spinner>
+          </div>
+          
+          <div *ngIf="!isLoadingContentStats && contentStats" class="stats-content">
+            <div class="stat-item">
+              <span class="stat-label">Movies Watched:</span>
+              <span class="stat-value">{{ contentStats.totalMoviesWatched }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Reviews:</span>
+              <span class="stat-value">{{ contentStats.totalReviews }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Watchlist Items:</span>
+              <span class="stat-value">{{ contentStats.totalWatchlistItems }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Average Rating:</span>
+              <span class="stat-value">{{ contentStats.averageRating.toFixed(1) }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <!-- System Statistics Card -->
+      <mat-card class="stats-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>settings</mat-icon>
+          <mat-card-title>System Statistics</mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div *ngIf="isLoadingSystemStats" class="loading-spinner">
+            <mat-spinner diameter="30"></mat-spinner>
+          </div>
+          
+          <div *ngIf="!isLoadingSystemStats && systemStats" class="stats-content">
+            <div class="stat-item">
+              <span class="stat-label">API Calls:</span>
+              <span class="stat-value">{{ systemStats.apiCalls }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Response Time:</span>
+              <span class="stat-value">{{ systemStats.averageResponseTime.toFixed(2) }} ms</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Error Rate:</span>
+              <span class="stat-value" [ngClass]="systemStats.errorRate > 5 ? 'negative' : ''">
+                {{ systemStats.errorRate.toFixed(2) }}%
+              </span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Server Load:</span>
+              <span class="stat-value" [ngClass]="systemStats.serverLoad > 80 ? 'negative' : systemStats.serverLoad > 60 ? 'warning' : ''">
+                {{ systemStats.serverLoad.toFixed(2) }}%
+              </span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+  
+  <!-- Charts Section -->
+  <div class="charts-section">
+    <div *ngIf="isLoadingCharts" class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading charts...</p>
+    </div>
+    
+    <div *ngIf="!isLoadingCharts" class="charts-grid">
+      <!-- User Growth Chart -->
+      <div class="chart-container">
+        <h2>User Growth</h2>
+        <div class="chart-placeholder">
+          <p>Chart visualization will be rendered here</p>
+          <p class="small">This would use a charting library like Chart.js to render the actual chart</p>
+        </div>
+      </div>
+      
+      <!-- Movie Ratings Chart -->
+      <div class="chart-container">
+        <h2>Movie Ratings</h2>
+        <div class="chart-placeholder">
+          <p>Chart visualization will be rendered here</p>
+          <p class="small">This would use a charting library like Chart.js to render the actual chart</p>
+        </div>
+      </div>
+      
+      <!-- Genre Popularity Chart -->
+      <div class="chart-container">
+        <h2>Genre Popularity</h2>
+        <div class="chart-placeholder">
+          <p>Chart visualization will be rendered here</p>
+          <p class="small">This would use a charting library like Chart.js to render the actual chart</p>
+        </div>
+      </div>
+      
+      <!-- Active Users Chart -->
+      <div class="chart-container">
+        <h2>Active Users</h2>
+        <div class="chart-placeholder">
+          <p>Chart visualization will be rendered here</p>
+          <p class="small">This would use a charting library like Chart.js to render the actual chart</p>
+        </div>
+      </div>
+      
+      <!-- Feature Usage Chart -->
+      <div class="chart-container">
+        <h2>Feature Usage</h2>
+        <div class="chart-placeholder">
+          <p>Chart visualization will be rendered here</p>
+          <p class="small">This would use a charting library like Chart.js to render the actual chart</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Top Content Section -->
+  <div class="top-content-section" *ngIf="!isLoadingContentStats && contentStats">
+    <h2>Top Content</h2>
+    
+    <div class="top-content-grid">
+      <!-- Most Watched Genres -->
+      <mat-card class="top-content-card">
+        <mat-card-header>
+          <mat-card-title>Most Watched Genres</mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="top-list">
+            <div *ngFor="let genre of contentStats.mostWatchedGenres; let i = index" class="top-item">
+              <span class="rank">{{ i + 1 }}</span>
+              <span class="name">{{ genre.name }}</span>
+              <span class="count">{{ genre.count }}</span>
+            </div>
+            
+            <div *ngIf="contentStats.mostWatchedGenres.length === 0" class="empty-state">
+              No genre data available
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <!-- Most Rated Movies -->
+      <mat-card class="top-content-card">
+        <mat-card-header>
+          <mat-card-title>Most Rated Movies</mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="top-list">
+            <div *ngFor="let movie of contentStats.mostRatedMovies; let i = index" class="top-item">
+              <span class="rank">{{ i + 1 }}</span>
+              <span class="name">{{ movie.title }}</span>
+              <span class="count">{{ movie.count }}</span>
+            </div>
+            
+            <div *ngIf="contentStats.mostRatedMovies.length === 0" class="empty-state">
+              No movie rating data available
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div> 

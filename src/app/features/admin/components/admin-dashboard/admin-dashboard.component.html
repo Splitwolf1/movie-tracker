@@ -1,0 +1,199 @@
+<div class="admin-dashboard-container">
+  <div class="dashboard-header">
+    <h1>Admin Dashboard</h1>
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="refreshData()">
+        <mat-icon>refresh</mat-icon>
+        Refresh Data
+      </button>
+      <button mat-raised-button color="accent" (click)="createBackup()">
+        <mat-icon>backup</mat-icon>
+        Create Backup
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading dashboard data...</p>
+  </div>
+
+  <div *ngIf="!isLoading" class="dashboard-content">
+    <!-- Quick stats section -->
+    <div class="stats-cards">
+      <mat-card class="stats-card users">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>people</mat-icon>
+          <mat-card-title>Users</mat-card-title>
+          <mat-card-subtitle>User Statistics</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content *ngIf="userStats">
+          <div class="stat-item">
+            <span class="stat-label">Total Users:</span>
+            <span class="stat-value">{{ userStats.totalUsers }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Active Users:</span>
+            <span class="stat-value">{{ userStats.activeUsers }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">New Users:</span>
+            <span class="stat-value">{{ userStats.newUsers }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Growth:</span>
+            <span class="stat-value">{{ userStats.growth }}%</span>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button routerLink="/admin/users">View Users</button>
+          <button mat-button routerLink="/admin/analytics">Analytics</button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card class="stats-card content">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>movie</mat-icon>
+          <mat-card-title>Content</mat-card-title>
+          <mat-card-subtitle>Content Statistics</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content *ngIf="contentStats">
+          <div class="stat-item">
+            <span class="stat-label">Movies Watched:</span>
+            <span class="stat-value">{{ contentStats.totalMoviesWatched }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Reviews:</span>
+            <span class="stat-value">{{ contentStats.totalReviews }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Watchlist Items:</span>
+            <span class="stat-value">{{ contentStats.totalWatchlistItems }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Average Rating:</span>
+            <span class="stat-value">{{ contentStats.averageRating.toFixed(1) }}</span>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button routerLink="/admin/moderation">Moderation</button>
+          <button mat-button routerLink="/admin/analytics">Analytics</button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card class="stats-card moderation">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>gavel</mat-icon>
+          <mat-card-title>Moderation</mat-card-title>
+          <mat-card-subtitle>Moderation Queue</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content *ngIf="moderationStats">
+          <div class="stat-item">
+            <span class="stat-label">Pending Reports:</span>
+            <span class="stat-value">{{ moderationStats.pendingReports }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Resolved Reports:</span>
+            <span class="stat-value">{{ moderationStats.resolvedReports }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Total Reports:</span>
+            <span class="stat-value">{{ moderationStats.totalReports || 0 }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Avg Resolution Time:</span>
+            <span class="stat-value">{{ moderationStats.averageResolutionTime || 0 }} hrs</span>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button routerLink="/admin/moderation">View Queue</button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card class="stats-card system">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>settings</mat-icon>
+          <mat-card-title>System</mat-card-title>
+          <mat-card-subtitle>System Health</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content *ngIf="systemStats && systemHealth">
+          <div class="stat-item">
+            <span class="stat-label">API Calls:</span>
+            <span class="stat-value">{{ systemStats.apiCalls }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Response Time:</span>
+            <span class="stat-value">{{ systemStats.averageResponseTime.toFixed(2) }} ms</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Error Rate:</span>
+            <span class="stat-value">{{ systemStats.errorRate.toFixed(2) }}%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Server Load:</span>
+            <span class="stat-value">{{ systemStats.serverLoad.toFixed(2) }}%</span>
+          </div>
+          <div class="system-status" [ngClass]="{'healthy': systemHealth.status === 'healthy', 'warning': systemHealth.status === 'warning', 'critical': systemHealth.status === 'critical'}">
+            <mat-icon>{{ systemHealth.status === 'healthy' ? 'check_circle' : systemHealth.status === 'warning' ? 'warning' : 'error' }}</mat-icon>
+            <span>{{ systemHealth.status | titlecase }}</span>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button routerLink="/admin/settings">Settings</button>
+          <button mat-button [routerLink]="" (click)="createBackup()">Backup</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
+    <!-- Quick links -->
+    <div class="quick-links">
+      <h2>Quick Links</h2>
+      <div class="links-grid">
+        <a mat-raised-button routerLink="/admin/users">
+          <mat-icon>people</mat-icon>
+          User Management
+        </a>
+        <a mat-raised-button routerLink="/admin/moderation">
+          <mat-icon>gavel</mat-icon>
+          Content Moderation
+        </a>
+        <a mat-raised-button routerLink="/admin/system">
+          <mat-icon>settings</mat-icon>
+          System Management
+        </a>
+        <a mat-raised-button routerLink="/admin/analytics">
+          <mat-icon>bar_chart</mat-icon>
+          Analytics
+        </a>
+      </div>
+    </div>
+
+    <!-- Pending actions section -->
+    <div class="pending-actions" *ngIf="moderationStats">
+      <h2>Pending Actions</h2>
+      <mat-card>
+        <mat-card-content>
+          <p *ngIf="moderationStats.pendingReports && moderationStats.pendingReports > 0">
+            There are <strong>{{ moderationStats.pendingReports }} pending reports</strong> that require moderation.
+          </p>
+          <p *ngIf="dashboardStats?.pendingReviews && dashboardStats.pendingReviews > 0">
+            There are <strong>{{ dashboardStats.pendingReviews }} pending reviews</strong> awaiting approval.
+          </p>
+          <p *ngIf="dashboardStats?.pendingComments && dashboardStats.pendingComments > 0">
+            There are <strong>{{ dashboardStats.pendingComments }} pending comments</strong> awaiting moderation.
+          </p>
+          <div *ngIf="(!moderationStats.pendingReports || moderationStats.pendingReports === 0) && 
+                      (!dashboardStats?.pendingReviews || dashboardStats.pendingReviews === 0) && 
+                      (!dashboardStats?.pendingComments || dashboardStats.pendingComments === 0)">
+            <p><strong>All caught up!</strong> No pending moderation actions.</p>
+          </div>
+        </mat-card-content>
+        <mat-card-actions *ngIf="(moderationStats.pendingReports && moderationStats.pendingReports > 0) || 
+                                 (dashboardStats?.pendingReviews && dashboardStats.pendingReviews > 0) || 
+                                 (dashboardStats?.pendingComments && dashboardStats.pendingComments > 0)">
+          <button mat-button routerLink="/admin/moderation">View All</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div> 

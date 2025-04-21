@@ -1,0 +1,61 @@
+<h2 mat-dialog-title>Create New List</h2>
+
+<form [formGroup]="listForm" (ngSubmit)="onSubmit()">
+  <div mat-dialog-content>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>List Name</mat-label>
+      <input matInput formControlName="name" placeholder="My Favorite Sci-Fi Movies" required>
+      <mat-error *ngIf="listForm.get('name')?.hasError('required')">
+        Name is required
+      </mat-error>
+      <mat-error *ngIf="listForm.get('name')?.hasError('maxlength')">
+        Name cannot exceed 100 characters
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description" placeholder="A collection of my favorite science fiction films" rows="3"></textarea>
+      <mat-error *ngIf="listForm.get('description')?.hasError('maxlength')">
+        Description cannot exceed 500 characters
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Tags</mat-label>
+      <mat-chip-grid #chipGrid>
+        <mat-chip-row *ngFor="let tag of tags" (removed)="removeTag(tag)">
+          {{tag}}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip-row>
+        <input placeholder="Add tag..."
+               [matChipInputFor]="chipGrid"
+               [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+               (matChipInputTokenEnd)="addTag($event)">
+      </mat-chip-grid>
+      <mat-hint>Press Enter or comma to add a tag</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Cover Image URL (optional)</mat-label>
+      <input matInput formControlName="coverImage" placeholder="https://example.com/image.jpg">
+    </mat-form-field>
+
+    <div class="privacy-toggle">
+      <mat-slide-toggle formControlName="isPublic" color="primary">
+        Make this list public
+      </mat-slide-toggle>
+      <div class="privacy-hint">
+        <mat-icon>info</mat-icon>
+        <span>Public lists can be viewed by anyone</span>
+      </div>
+    </div>
+  </div>
+
+  <div mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Cancel</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="listForm.invalid">Create List</button>
+  </div>
+</form> 
