@@ -1,16 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { of, Observable } from 'rxjs';
 import { SearchService } from '../../core/services/search.service';
 import { Movie } from '../../core/models/movie.model';
 import { Person } from '../../core/models/person.model';
-import { Observable } from 'rxjs';
-import { of } from 'rxjs';
 
 @Component({
   selector: 'app-search',
   template: `
     <div class="search-container">
+      <div class="search-header">
+        <h1>Search</h1>
+        <p>Find movies, TV shows, and people</p>
+      </div>
+
       <form [formGroup]="searchForm" class="search-form">
         <mat-form-field appearance="outline" class="search-field">
           <mat-label>Search movies, TV shows, and people</mat-label>
@@ -19,8 +24,11 @@ import { of } from 'rxjs';
             formControlName="query"
             placeholder="Enter search term..."
             autocomplete="off"
+            (keyup.enter)="performSearch()"
           >
-          <mat-icon matSuffix>search</mat-icon>
+          <button mat-icon-button matSuffix (click)="performSearch()">
+            <mat-icon>search</mat-icon>
+          </button>
         </mat-form-field>
 
         <div class="search-filters">
@@ -32,37 +40,51 @@ import { of } from 'rxjs';
         </div>
       </form>
 
-      <div class="search-results" *ngIf="searchResults$ | async as results">
-        <div class="results-section" *ngIf="results.movies.length">
-          <h2>Movies & TV Shows</h2>
-          <div class="results-grid">
-            <mat-card class="result-card" *ngFor="let movie of results.movies">
-              <img [src]="getPosterUrl(movie)" [alt]="movie.title" class="poster">
-              <mat-card-content>
-                <h3>{{ movie.title }}</h3>
-                <p>{{ movie.release_date | date:'yyyy' }}</p>
-              </mat-card-content>
-            </mat-card>
+      <ng-container *ngIf="isLoading">
+        <div class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="!isLoading">
+        <div class="search-results" *ngIf="searchResults$ | async as results">
+          <div class="results-section" *ngIf="results.movies.length">
+            <h2>Movies & TV Shows</h2>
+            <div class="results-grid">
+              <mat-card class="result-card" *ngFor="let movie of results.movies" [routerLink]="['/details', 'movie', movie.id]">
+                <img [src]="getPosterUrl(movie)" [alt]="movie.title" class="poster">
+                <mat-card-content>
+                  <h3>{{ movie.title }}</h3>
+                  <p>{{ movie.release_date | date:'yyyy' }}</p>
+                  <div class="rating" *ngIf="movie.vote_average">
+                    <mat-icon>star</mat-icon>
+                    <span>{{ movie.vote_average | number:'1.1-1' }}</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+
+          <div class="results-section" *ngIf="results.people.length">
+            <h2>People</h2>
+            <div class="results-grid">
+              <mat-card class="result-card" *ngFor="let person of results.people" [routerLink]="['/person', person.id]">
+                <img [src]="getProfileUrl(person)" [alt]="person.name" class="profile">
+                <mat-card-content>
+                  <h3>{{ person.name }}</h3>
+                  <p>{{ person.known_for_department }}</p>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+
+          <div class="no-results" *ngIf="(!results.movies.length && !results.people.length) && searchPerformed">
+            <mat-icon>search_off</mat-icon>
+            <p>No results found for "{{ searchForm.get('query')?.value }}"</p>
+            <p>Try different keywords or check spelling</p>
           </div>
         </div>
-
-        <div class="results-section" *ngIf="results.people.length">
-          <h2>People</h2>
-          <div class="results-grid">
-            <mat-card class="result-card" *ngFor="let person of results.people">
-              <img [src]="getProfileUrl(person)" [alt]="person.name" class="profile">
-              <mat-card-content>
-                <h3>{{ person.name }}</h3>
-                <p>{{ person.known_for_department }}</p>
-              </mat-card-content>
-            </mat-card>
-          </div>
-        </div>
-
-        <div class="no-results" *ngIf="!results.movies.length && !results.people.length">
-          <p>No results found for "{{ searchForm.get('query')?.value }}"</p>
-        </div>
-      </div>
+      </ng-container>
     </div>
   `,
   styles: [`
@@ -70,6 +92,19 @@ import { of } from 'rxjs';
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem 1rem;
+    }
+    .search-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        color: #3f51b5;
+      }
+      p {
+        font-size: 1.2rem;
+        color: #666;
+      }
     }
     .search-form {
       display: flex;
@@ -84,12 +119,19 @@ import { of } from 'rxjs';
       display: flex;
       justify-content: center;
     }
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      padding: 2rem;
+    }
     .results-section {
       margin-bottom: 2rem;
       h2 {
         font-size: 1.5rem;
         margin-bottom: 1rem;
         color: #333;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #3f51b5;
       }
     }
     .results-grid {
@@ -99,9 +141,10 @@ import { of } from 'rxjs';
     }
     .result-card {
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s;
       &:hover {
         transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
       }
     }
     .poster, .profile {
@@ -109,20 +152,57 @@ import { of } from 'rxjs';
       height: 300px;
       object-fit: cover;
     }
+    .rating {
+      display: flex;
+      align-items: center;
+      color: #f5c518;
+      mat-icon {
+        font-size: 18px;
+        height: 18px;
+        width: 18px;
+        margin-right: 4px;
+      }
+    }
     .no-results {
       text-align: center;
-      padding: 2rem;
+      padding: 3rem 1rem;
       color: #666;
+      mat-icon {
+        font-size: 48px;
+        height: 48px;
+        width: 48px;
+        margin-bottom: 1rem;
+        color: #999;
+      }
+      p {
+        margin-bottom: 0.5rem;
+        &:first-of-type {
+          font-size: 1.2rem;
+          font-weight: 500;
+        }
+      }
+    }
+    @media (max-width: 768px) {
+      .results-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+      .poster, .profile {
+        height: 225px;
+      }
     }
   `]
 })
 export class SearchComponent implements OnInit {
   searchForm: FormGroup;
-  searchResults$: Observable<{ movies: Movie[]; people: Person[] }>;
+  searchResults$: Observable<{ movies: Movie[]; people: Person[] }> = of({ movies: [], people: [] });
+  isLoading = false;
+  searchPerformed = false;
 
   constructor(
     private fb: FormBuilder,
-    private searchService: SearchService
+    private searchService: SearchService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {
     this.searchForm = this.fb.group({
       query: [''],
@@ -131,16 +211,65 @@ export class SearchComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.searchResults$ = this.searchForm.get('query')?.valueChanges.pipe(
+    // Check if there's a query parameter from the URL
+    this.route.queryParams.subscribe(params => {
+      if (params['q']) {
+        this.searchForm.get('query')?.setValue(params['q']);
+        this.performSearch();
+      }
+    });
+
+    // Set up the reactive form handling
+    this.searchForm.get('query')?.valueChanges.pipe(
       debounceTime(300),
-      distinctUntilChanged(),
-      switchMap(query => {
-        if (!query) {
-          return of({ movies: [], people: [] });
+      distinctUntilChanged()
+    ).subscribe(() => {
+      if (this.searchForm.get('query')?.value) {
+        this.updateQueryParams();
+      }
+    });
+
+    this.searchForm.get('type')?.valueChanges.subscribe(() => {
+      if (this.searchForm.get('query')?.value) {
+        this.performSearch();
+      }
+    });
+  }
+
+  performSearch(): void {
+    const query = this.searchForm.get('query')?.value?.trim();
+    if (!query) {
+      return;
+    }
+
+    this.searchPerformed = true;
+    this.isLoading = true;
+    this.updateQueryParams();
+    
+    this.searchResults$ = this.searchService.search(query).pipe(
+      switchMap(results => {
+        this.isLoading = false;
+        // Filter results based on selected type
+        const type = this.searchForm.get('type')?.value;
+        if (type === 'movies') {
+          return of({ movies: results.movies, people: [] });
+        } else if (type === 'people') {
+          return of({ movies: [], people: results.people });
         }
-        return this.searchService.search(query);
+        return of(results);
       })
     );
+  }
+
+  updateQueryParams(): void {
+    const query = this.searchForm.get('query')?.value?.trim();
+    if (query) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { q: query },
+        queryParamsHandling: 'merge'
+      });
+    }
   }
 
   getPosterUrl(movie: Movie): string {

@@ -1,8 +1,44 @@
 {
-  "users": [],
+  "users": [
+    {
+      "id": "1",
+      "username": "admin",
+      "email": "admin@example.com",
+      "password": "admin123",
+      "roles": [
+        "admin",
+        "user"
+      ],
+      "createdAt": "2025-04-21T20:45:43.501Z",
+      "isActive": true
+    },
+    {
+      "id": "2",
+      "username": "moderator",
+      "email": "moderator@example.com",
+      "password": "mod123",
+      "roles": [
+        "moderator",
+        "user"
+      ],
+      "createdAt": "2025-04-21T20:45:43.502Z",
+      "isActive": true
+    },
+    {
+      "id": "3",
+      "username": "user",
+      "email": "user@example.com",
+      "password": "user123",
+      "roles": [
+        "user"
+      ],
+      "createdAt": "2025-04-21T20:45:43.502Z",
+      "isActive": true
+    }
+  ],
   "movies": [],
   "reviews": [],
   "watchParties": [],
   "notifications": [],
   "systemLogs": []
-} 
+}

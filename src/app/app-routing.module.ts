@@ -33,6 +33,10 @@ const routes: Routes = [
     redirectTo: 'filter/tv'
   },
   { 
+    path: 'search', 
+    loadChildren: () => import('./features/search/search.module').then(m => m.SearchModule) 
+  },
+  { 
     path: 'auth', 
     loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule) 
   },
